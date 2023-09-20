@@ -1,0 +1,17 @@
+{
+    "name": "Sample Payload",
+    "description": "This is a sample payload.",
+    "fileManifests": [
+        {
+            "name": "file1.txt",
+            "fileType": "FILE",
+            "fileHash": "abc123",
+            "fileSize": 12345
+        },
+        {
+            "name": "directory1",
+            "fileType": "DIRECTORY",
+            "directoryContents": ["file2.txt", "file3.txt"]
+        }
+    ]
+}

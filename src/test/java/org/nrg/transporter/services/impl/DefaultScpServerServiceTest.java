@@ -120,7 +120,6 @@ public class DefaultScpServerServiceTest {
             } catch (SshException e) {}
             assertThat("Failed to authenticate SCP session", success, is(true));
         } finally {
-            sleep(100000);
             client.stop();
         }
     }

@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.5.4'
     id "io.freefair.lombok" version "6.0.0-m2"
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'maven-publish'
     id 'java'
 }
 
@@ -15,11 +16,12 @@ targetCompatibility = 1.8
 def vApacheSshd = "2.10.0"
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-release" }
     maven { url "https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot" }
-    mavenLocal() // For local maven repository dependencies
 }
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -28,7 +30,8 @@ dependencies {
     implementation 'com.auth0:java-jwt:4.4.0'
     implementation "org.apache.sshd:sshd-scp:${vApacheSshd}"
     implementation "org.apache.sshd:sshd-core:${vApacheSshd}"
-//    implementation 'org.xnatx.plugins:xnat-transporter-plugin:0.1.0'
+    implementation 'com.h2database:h2'
+    implementation 'org.nrg.xnatx.plugins:xnat-transporter-plugin:0.1.0'
     testImplementation "junit:junit"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.hamcrest:hamcrest-library"
@@ -49,4 +52,3 @@ dependencies {
 
 
 }
-

@@ -3,14 +3,14 @@ package org.nrg.transporter.services.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.nrg.transporter.model.Payload;
 import org.nrg.transporter.services.PayloadService;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+@Service
 public class DefaultPayloadService implements PayloadService {
-
-
 
         @Override
         public List<Payload> getPayloads(String user) {

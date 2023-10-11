@@ -3,6 +3,7 @@ package org.nrg.transporter.mina;
 import org.apache.sshd.common.file.root.RootedFileSystemProvider;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Map;
@@ -14,6 +15,10 @@ public class ReadOnlyRootedFileSystemProvider extends RootedFileSystemProvider {
         super.newFileSystem(root, null);
     }
 
+    @Override
+    public Path getPath(URI uri){
+        return super.getPath(uri);
+    }
 
     // Override methods to enforce read-only access
     @Override

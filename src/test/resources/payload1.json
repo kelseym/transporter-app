@@ -1,17 +1,22 @@
 {
-    "name": "Sample Payload",
-    "description": "This is a sample payload.",
+    "id": 1,
+    "dataSnapId": 1001,
+    "name": "SamplePayload",
+    "description": "This is a sample payload description",
     "fileManifests": [
         {
-            "name": "file1.txt",
-            "fileType": "FILE",
-            "fileHash": "abc123",
-            "fileSize": 12345
+            "xnatUri": "/data/projects/PROJECT_A/subjects/SUBJECT_1",
+            "serverPath": "/server/path/to/subject_1",
+            "snapshotPath": "/snapshot/path/to/subject_1"
         },
         {
-            "name": "directory1",
-            "fileType": "DIRECTORY",
-            "directoryContents": ["file2.txt", "file3.txt"]
+            "xnatUri": "/data/projects/PROJECT_A/subjects/SUBJECT_2",
+            "serverPath": "/server/path/to/subject_2",
+            "snapshotPath": "/snapshot/path/to/subject_2"
         }
-    ]
+    ],
+    "transporterPathMapping": {
+        "xnatRootPath": "/data/xnat",
+        "serverRootPath": "/Users/Kelsey/Projects/XNAT/xnat-docker-compose/xnat-data"
+    }
 }

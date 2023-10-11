@@ -113,29 +113,29 @@ public class DefaultRestClientService implements RestClientService {
 
     @Override
     public Optional<XnatUserSession> getXnatToken(String username, String password, String alias, int duration) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(username, password);
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        String requestBody = "alias=" + alias + "&duration=" + duration;
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-        try {
-            XnatUserSession userSession = mapper.readValue(
-                     restTemplate.postForEntity(xnatUrl + XNAT_TOKEN_URL, request, String.class).getBody(),
-                    XnatUserSession.class);
-            if( response.getStatusCode() == HttpStatus.OK && response.hasBody()) {
-                XnatUserSession xnatUserSession = XnatUserSession.builder()
-                        .username(username)
-                        .jsessionid(response.getBody())
-                        .build();
-                return Optional.of(xnatUserSession);
-            } else {
-                return Optional.empty();
-            }
-        } catch (HttpClientErrorException e) {
-            e.printStackTrace();
-        }
-
-
+        //HttpHeaders headers = new HttpHeaders();
+        //headers.setBasicAuth(username, password);
+        //headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        //String requestBody = "alias=" + alias + "&duration=" + duration;
+        //HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+        //try {
+        //    XnatUserSession userSession = mapper.readValue(
+        //             restTemplate.postForEntity(xnatUrl + XNAT_TOKEN_URL, request, String.class).getBody(),
+        //            XnatUserSession.class);
+        //    if( response.getStatusCode() == HttpStatus.OK && response.hasBody()) {
+        //        XnatUserSession xnatUserSession = XnatUserSession.builder()
+        //                .username(username)
+        //                .jsessionid(response.getBody())
+        //                .build();
+        //        return Optional.of(xnatUserSession);
+        //    } else {
+        //        return Optional.empty();
+        //    }
+        //} catch (HttpClientErrorException e) {
+        //    e.printStackTrace();
+        //}
+//
+//
 
         return Optional.empty();
     }

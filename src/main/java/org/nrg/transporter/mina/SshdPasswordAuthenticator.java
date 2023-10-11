@@ -2,6 +2,7 @@ package org.nrg.transporter.mina;
 
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.session.ServerSession;
+import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -20,7 +21,8 @@ public class SshdPasswordAuthenticator implements PasswordAuthenticator {
 
     @Override
     public boolean authenticate(String username, String password, ServerSession session) {
-        if(isUserValid(username, password)) {
+        XnatUserSession xnatUserSession = isUserValid(username, password);
+        if(xnatUserSession != null) {
             setHomeDirectory(username, session);
             return true;
         }
@@ -28,12 +30,12 @@ public class SshdPasswordAuthenticator implements PasswordAuthenticator {
     }
 
 
-    private boolean isUserValid(String username, String password) {
+    private XnatUserSession isUserValid(String username, String password) {
         return authenticationService.authenticate(username, password);
     }
 
     private void setHomeDirectory(String username, ServerSession session) {
-
+        // TODO: Set home directory for user
     }
 
 }

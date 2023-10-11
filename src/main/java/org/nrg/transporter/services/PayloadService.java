@@ -1,7 +1,7 @@
 package org.nrg.transporter.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.nrg.transporter.model.Payload;
+import org.nrg.xnatx.plugins.transporter.model.Payload;
 
 import java.io.File;
 import java.io.IOException;

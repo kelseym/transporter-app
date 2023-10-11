@@ -17,6 +17,10 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
 
     private final AuthenticationService authenticationService;
 
+    // TODO: Modify to handle SCP commands in a way that it checks against the manifest
+    //  before serving files.
+    //  If a client requests a file not in the manifest, it should be denied.
+
     @Autowired
     public CustomScpCommandFactory(AuthenticationService authenticationService) {
         super();

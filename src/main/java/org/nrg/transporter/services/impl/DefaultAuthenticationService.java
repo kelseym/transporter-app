@@ -20,7 +20,6 @@ public class DefaultAuthenticationService implements AuthenticationService {
 
     @Override
     public XnatUserSession authenticate(String username, String password) {
-        restClientService.
         //TODO: Call XNAT to authenticate user
         return null;
     }

@@ -12,6 +12,8 @@ public interface RestClientService {
 
     public List<DataSnap> getAvailableSnapshots(String user, String token);
 
+    List<DataSnap> getAvailableSnapshots(XnatUserSession xnatUserSession);
+
     public Optional<XnatUserSession> authenticate(String username, String password);
 
 

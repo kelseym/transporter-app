@@ -4,6 +4,7 @@ import org.nrg.transporter.model.XnatUserSession;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 @Service
 public interface AuthenticationService {
@@ -15,7 +16,7 @@ public interface AuthenticationService {
      * @param password The password of the user.
      * @return true if authentication is successful, false otherwise.
      */
-    XnatUserSession authenticate(String username, String password);
+    Optional<XnatUserSession> authenticate(String username, String password);
 
 
     /**

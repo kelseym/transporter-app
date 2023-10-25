@@ -23,8 +23,6 @@ public class DefaultRestClientService implements RestClientService {
     //Load XNAT Host info from properties file.
     @Autowired
     private RestTemplate restTemplate;
-    @Autowired
-    private TransporterConfig transporterConfig;
 
     @Autowired
     private RestTemplateBuilder restTemplateBuilder;
@@ -79,6 +77,11 @@ public class DefaultRestClientService implements RestClientService {
                         new ParameterizedTypeReference<List<DataSnap>>() {});
 
         return response.getBody();
+    }
+
+    @Override
+    public List<DataSnap> getAvailableSnapshots(XnatUserSession xnatUserSession) {
+        return getAvailableSnapshots(xnatUserSession.getUsername(), xnatUserSession.getJsessionid());
     }
 
     @Override

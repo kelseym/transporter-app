@@ -8,6 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
+import static org.nrg.transporter.mina.SessionAttributes.XNAT_USER_SESSION;
+
 @Component
 @Scope("prototype")
 public class SshdPasswordAuthenticator implements PasswordAuthenticator {
@@ -21,21 +25,17 @@ public class SshdPasswordAuthenticator implements PasswordAuthenticator {
 
     @Override
     public boolean authenticate(String username, String password, ServerSession session) {
-        XnatUserSession xnatUserSession = isUserValid(username, password);
+        XnatUserSession xnatUserSession = getXnatSession(username, password).orElse(null);
         if(xnatUserSession != null) {
-            setHomeDirectory(username, session);
+            session.setAttribute(XNAT_USER_SESSION, xnatUserSession);
             return true;
         }
         return false;
     }
 
 
-    private XnatUserSession isUserValid(String username, String password) {
+    private Optional<XnatUserSession> getXnatSession(String username, String password) {
         return authenticationService.authenticate(username, password);
-    }
-
-    private void setHomeDirectory(String username, ServerSession session) {
-        // TODO: Set home directory for user
     }
 
 }

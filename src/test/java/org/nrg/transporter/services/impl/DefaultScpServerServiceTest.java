@@ -18,6 +18,7 @@ import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
 import org.nrg.transporter.services.ScpServerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.runner.RunWith;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 
 import static java.lang.Thread.sleep;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,6 +49,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @Slf4j
 @ContextConfiguration(classes = {TransporterTestConfig.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@ActiveProfiles("mock")
 public class DefaultScpServerServiceTest {
 
     @Autowired private ScpServerService scpServerService;
@@ -58,11 +61,15 @@ public class DefaultScpServerServiceTest {
     final String TEST_PASS = "testPass";
     final String TEST_SNAPSHOT = "SamplePayload";
 
+    final String XNAT_HOST = "localhost";
+    final Integer XNAT_PORT = 8080;
+
     @Before
     public void setUp() throws Exception {
 
         // Mock the AuthenticationService
-        when(authenticationService.authenticate(anyString(), anyString())).thenReturn(XnatUserSession.builder().build());
+        when(authenticationService.authenticate(anyString(), anyString()))
+                .thenReturn(Optional.ofNullable(XnatUserSession.builder().build()));
         Path testRootPath = Paths.get(getClass().getClassLoader()
                 .getResource("TestRootPath").getPath());
         when(authenticationService.
@@ -155,4 +162,6 @@ public class DefaultScpServerServiceTest {
             client.stop();
         }
     }
+
+
 }

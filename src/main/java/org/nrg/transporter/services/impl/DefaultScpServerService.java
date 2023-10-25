@@ -3,8 +3,8 @@ package org.nrg.transporter.services.impl;
 
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.nrg.transporter.mina.CustomVirtualFileSystemFactory;
 import org.nrg.transporter.mina.CustomScpCommandFactory;
+import org.nrg.transporter.mina.SnapshotVirtualFileSystemFactory;
 import org.nrg.transporter.mina.SshdPasswordAuthenticator;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.services.AuthenticationService;
@@ -32,7 +32,7 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setPasswordAuthenticator(new SshdPasswordAuthenticator(authenticationService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         sshdServer.setCommandFactory(new CustomScpCommandFactory(authenticationService));
-        sshdServer.setFileSystemFactory(new CustomVirtualFileSystemFactory(authenticationService));
+        sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
         // TODO: Add event listener to SCP server to handle logging
 /*        scpCommandFactory.addEventListener(new ScpTransferEventListener() {

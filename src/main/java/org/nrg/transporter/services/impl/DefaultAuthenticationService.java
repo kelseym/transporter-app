@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 @Service
 public class DefaultAuthenticationService implements AuthenticationService {
@@ -19,9 +20,8 @@ public class DefaultAuthenticationService implements AuthenticationService {
     }
 
     @Override
-    public XnatUserSession authenticate(String username, String password) {
-        //TODO: Call XNAT to authenticate user
-        return null;
+    public Optional<XnatUserSession> authenticate(String username, String password) {
+        return restClientService.authenticate(username, password);
     }
 
     @Override

@@ -24,11 +24,4 @@ public class DefaultAuthenticationService implements AuthenticationService {
         return restClientService.authenticate(username, password);
     }
 
-    @Override
-    public Path resolveRootPath(String username, String scpRequest) {
-        //TODO: Call XNAT to resolve user root directory
-        return null;
-    }
-
-
 }

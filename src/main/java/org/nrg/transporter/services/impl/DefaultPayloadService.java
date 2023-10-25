@@ -1,40 +1,38 @@
 package org.nrg.transporter.services.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.PayloadService;
+import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DefaultPayloadService implements PayloadService {
 
-        @Override
-        public List<Payload> getPayloads(String user) {
-                return Arrays.asList(loadPayloadFromFile("payload.json"));
+        private final RestClientService restClientService;
+
+        @Autowired
+        public DefaultPayloadService(final RestClientService restClientService) {
+                this.restClientService = restClientService;
         }
 
         @Override
-        public Payload getPayload(String user, String id) {
-                return loadPayloadFromFile("payload.json");
+        public List<String> getAvailablePayloadLabels(XnatUserSession xnatUserSession) {
+                return getAvailablePayloads(xnatUserSession)
+                        .stream().map(Payload::getLabel).collect(Collectors.toList());
+        }
+        @Override
+        public List<Payload> getAvailablePayloads(XnatUserSession xnatUserSession) {
+               return restClientService.getAvailablePayloads(xnatUserSession);
         }
 
-
-        // Test code to load payload from file
-        private Payload loadPayloadFromFile(String filename) {
-                Payload payload = null;
-                try {
-                        File file = new File(filename);
-                        ObjectMapper mapper = new ObjectMapper();
-                        payload = mapper.readValue(file, Payload.class);
-                } catch (Exception e) {
-                        e.printStackTrace();
-                }
-                return payload;
+        @Override
+        public Optional<Payload> getPayload(XnatUserSession xnatUserSession, String label) {
+                return restClientService.getPayload(xnatUserSession, label);
         }
-
 }

@@ -46,10 +46,5 @@ public class TransportRestApi {
         return ResponseEntity.ok(transporterService.scpServerStatus());
     }
 
-    // Return a list of snapshots available to the user
-    @GetMapping("/snapshots")
-    public ResponseEntity<List<DataSnap>> getDataSnaps(@RequestParam String user, @RequestParam String token) {
-        return ResponseEntity.ok(transporterService.getDataSnaps(user, token));
-    }
 
 }

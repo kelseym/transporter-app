@@ -19,9 +19,4 @@ public interface AuthenticationService {
     Optional<XnatUserSession> authenticate(String username, String password);
 
 
-    /**
-     * Resolve user root directory based on username and SCP directory request.
-     *
-     */
-    Path resolveRootPath(String username, String scpRequest);
 }

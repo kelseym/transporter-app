@@ -5,6 +5,7 @@ import org.nrg.transporter.config.TransporterConfig;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
+import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,8 @@ public class DefaultRestClientService implements RestClientService {
     private final String xnatUrl;
     private static final String LOGIN_URL = "/app/template/Login.vm";
     private static final String DATA_SNAPSHOTS_URL = "/xapi/transporter/snapshots";
+    private static final String DATA_PAYLOADS_URL = "/xapi/transporter/payloads";
+    private static final String DATA_PAYLOAD_URL = "/xapi/transporter/payload/{label}";
     private static final String XNAT_JSESSION_URL = "/data/JSESSION";
     private static final String XNAT_TOKEN_URL = "/data/services/tokens/issue";
 
@@ -82,6 +85,52 @@ public class DefaultRestClientService implements RestClientService {
     @Override
     public List<DataSnap> getAvailableSnapshots(XnatUserSession xnatUserSession) {
         return getAvailableSnapshots(xnatUserSession.getUsername(), xnatUserSession.getJsessionid());
+    }
+
+    @Override
+    public List<Payload> getAvailablePayloads(XnatUserSession xnatUserSession) {
+        return getAvailablePayloads(xnatUserSession.getUsername(), xnatUserSession.getJsessionid());
+    }
+
+    private List<Payload> getAvailablePayloads(String username, String jsessionid) {
+        // Load available snapshots from XNAT
+        String snapshotsUrl = xnatUrl + DATA_PAYLOADS_URL;
+
+        RestTemplate restTemplate = restTemplateBuilder
+                .basicAuthentication(username, jsessionid)
+                .defaultHeader("Accept", "application/json")
+                .build();
+
+        ResponseEntity<List<Payload>> response =
+                restTemplate.exchange(snapshotsUrl,
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<List<Payload>>() {});
+
+        return response.getBody();
+    }
+
+    @Override
+    public Optional<Payload> getPayload(XnatUserSession xnatUserSession, String label) {
+        return Optional.ofNullable(getPayload(xnatUserSession.getUsername(), xnatUserSession.getJsessionid(), label));
+    }
+
+    private Payload getPayload(String username, String jsessionid, String label) {
+        // Load available snapshots from XNAT
+        String snapshotsUrl = xnatUrl + DATA_PAYLOAD_URL;
+
+        RestTemplate restTemplate = restTemplateBuilder
+                .basicAuthentication(username, jsessionid)
+                .defaultHeader("Accept", "application/json")
+                .build();
+
+        ResponseEntity<Payload> response =
+                restTemplate.exchange(snapshotsUrl,
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<Payload>() {});
+
+        return response.getBody();
     }
 
     @Override

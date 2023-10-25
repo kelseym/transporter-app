@@ -5,6 +5,7 @@ import org.apache.sshd.scp.server.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.channel.ChannelSession;
 import org.nrg.transporter.services.AuthenticationService;
+import org.nrg.transporter.services.PayloadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -15,16 +16,16 @@ import java.io.IOException;
 @Scope("prototype")
 public class CustomScpCommandFactory extends ScpCommandFactory{
 
-    private final AuthenticationService authenticationService;
+    private final PayloadService payloadService;
 
     // TODO: Modify to handle SCP commands in a way that it checks against the manifest
     //  before serving files.
     //  If a client requests a file not in the manifest, it should be denied.
 
     @Autowired
-    public CustomScpCommandFactory(AuthenticationService authenticationService) {
+    public CustomScpCommandFactory(PayloadService payloadService) {
         super();
-        this.authenticationService = authenticationService;
+        this.payloadService = payloadService;
     }
 
     @Override
@@ -34,4 +35,6 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
         serverSession.setAttribute(SessionAttributes.COMMAND, command);
         return new ScpCommandFactory().createCommand(channelSession, command);
     }
+
+
 }

@@ -1,20 +1,19 @@
 package org.nrg.transporter.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public interface PayloadService {
 
-    // Query XNAT for available payload/snapshot objects
-    // Return a list of payload/snapshot objects
-    public List<Payload> getPayloads(String user);
+    List<String> getAvailablePayloadLabels(XnatUserSession xnatUserSession);
 
-    // Return Paylod object with specified ID
-    public Payload getPayload(String user, String id);
+    List<Payload> getAvailablePayloads(XnatUserSession xnatUserSession);
 
-
+    Optional<Payload> getPayload(XnatUserSession xnatUserSession, String label);
 }

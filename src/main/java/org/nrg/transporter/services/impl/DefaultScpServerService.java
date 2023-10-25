@@ -8,7 +8,9 @@ import org.nrg.transporter.mina.SnapshotVirtualFileSystemFactory;
 import org.nrg.transporter.mina.SshdPasswordAuthenticator;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.services.AuthenticationService;
+import org.nrg.transporter.services.PayloadService;
 import org.nrg.transporter.services.ScpServerService;
+import org.nrg.transporter.services.TransporterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +21,14 @@ public class DefaultScpServerService implements ScpServerService {
 
     private SshServer sshdServer;
     private AuthenticationService authenticationService;
+    private TransporterService transporterService;
+    private PayloadService payloadService;
 
     @Autowired
-    public DefaultScpServerService(AuthenticationService authenticationService) {
+public DefaultScpServerService(AuthenticationService authenticationService, TransporterService transporterService, PayloadService payloadService) {
         this.authenticationService = authenticationService;
+        this.transporterService = transporterService;
+        this.payloadService = payloadService;
     }
 
     @Override
@@ -31,7 +37,7 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setPort(sshdConfig.getPort());
         sshdServer.setPasswordAuthenticator(new SshdPasswordAuthenticator(authenticationService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
-        sshdServer.setCommandFactory(new CustomScpCommandFactory(authenticationService));
+        sshdServer.setCommandFactory(new CustomScpCommandFactory(payloadService));
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
         // TODO: Add event listener to SCP server to handle logging

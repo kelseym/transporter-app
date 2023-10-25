@@ -3,17 +3,20 @@ package org.nrg.transporter.services.impl;
 import org.nrg.transporter.config.TransporterConfig;
 import org.nrg.transporter.model.ServerStatus;
 import org.nrg.transporter.model.SshdConfig;
+import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
 import org.nrg.transporter.services.PayloadService;
 import org.nrg.transporter.services.RestClientService;
 import org.nrg.transporter.services.ScpServerService;
 import org.nrg.transporter.services.TransporterService;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
+import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DefaultTransporterService implements TransporterService {
@@ -63,8 +66,28 @@ public class DefaultTransporterService implements TransporterService {
     }
 
     @Override
-    public List<DataSnap> getDataSnaps(String user, String token) {
+    public List<DataSnap> getAvailableSnapshots(String user, String token) {
         return restClientService.getAvailableSnapshots(user, token);
+    }
+
+    @Override
+    public List<DataSnap> getAvailableSnapshots(XnatUserSession xnatUserSession) {
+        return restClientService.getAvailableSnapshots(xnatUserSession);
+    }
+
+    @Override
+    public Optional<XnatUserSession> getXnatUserSession(String user, String password) {
+        return authenticationService.authenticate(user, password);
+    }
+
+    @Override
+    public List<String> getAvailablePayloadLabels(XnatUserSession xnatUserSession) {
+        return payloadService.getAvailablePayloadLabels(xnatUserSession);
+    }
+
+    @Override
+    public Optional<Payload> getPayload(XnatUserSession xnatUserSession, String label) {
+        return payloadService.getPayload(xnatUserSession, label);
     }
 
 }

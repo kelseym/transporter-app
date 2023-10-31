@@ -9,13 +9,11 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "transporter")
 public class TransporterConfig {
-    @Value("@{application.xnat_host:localhost}")
-    private String xnatHost;
+    private String xnatHost = "localhost";
 
-    @Value("{application.xnat_port:8080}")
-    private String xnatPort;
+    private String xnatPort = "8080";
 
-    @Value("{transporter.default_scp_port:22}")
-    private String defaultScpPort;
+    private String defaultScpPort = "22";
 
+    private String xnatAppPathMapping = "/data/xnat/build/:/data/xnat/build/";
 }

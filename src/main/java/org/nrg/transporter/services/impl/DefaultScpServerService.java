@@ -12,23 +12,20 @@ import org.nrg.transporter.services.PayloadService;
 import org.nrg.transporter.services.ScpServerService;
 import org.nrg.transporter.services.TransporterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
-@Service
 public class DefaultScpServerService implements ScpServerService {
 
     private SshServer sshdServer;
     private AuthenticationService authenticationService;
     private TransporterService transporterService;
-    private PayloadService payloadService;
 
-    @Autowired
-public DefaultScpServerService(AuthenticationService authenticationService, TransporterService transporterService, PayloadService payloadService) {
+    public DefaultScpServerService(AuthenticationService authenticationService, TransporterService transporterService) {
         this.authenticationService = authenticationService;
         this.transporterService = transporterService;
-        this.payloadService = payloadService;
     }
 
     @Override
@@ -37,7 +34,7 @@ public DefaultScpServerService(AuthenticationService authenticationService, Tran
         sshdServer.setPort(sshdConfig.getPort());
         sshdServer.setPasswordAuthenticator(new SshdPasswordAuthenticator(authenticationService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
-        sshdServer.setCommandFactory(new CustomScpCommandFactory(payloadService));
+        sshdServer.setCommandFactory(new CustomScpCommandFactory(transporterService));
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
         // TODO: Add event listener to SCP server to handle logging

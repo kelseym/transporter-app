@@ -15,8 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class DefaultTransporterService implements TransporterService {
@@ -27,14 +30,19 @@ public class DefaultTransporterService implements TransporterService {
     PayloadService payloadService;
     TransporterConfig transporterConfig;
 
+    private static String SCP_COMMAND_REGEX = "scp.*f\\s+(.+)$";
+    private static Pattern SCP_COMMAND_PATTERN = Pattern.compile(SCP_COMMAND_REGEX);
+
+
+
     @Autowired
     public DefaultTransporterService(RestClientService restClientService, AuthenticationService authenticationService,
-                                     ScpServerService scpServerService, PayloadService payloadService, TransporterConfig transporterConfig) {
+                                     PayloadService payloadService, TransporterConfig transporterConfig) {
         this.restClientService = restClientService;
         this.authenticationService = authenticationService;
-        this.scpServerService = scpServerService;
         this.payloadService = payloadService;
         this.transporterConfig = transporterConfig;
+        this.scpServerService = new DefaultScpServerService(authenticationService, this);
     }
 
     // Check connection to XNAT
@@ -57,7 +65,6 @@ public class DefaultTransporterService implements TransporterService {
                 .port(port)
                 .build();
         return scpServerService.addScpServer(sshdConfig);
-
     }
 
     @Override
@@ -90,4 +97,23 @@ public class DefaultTransporterService implements TransporterService {
         return payloadService.getPayload(xnatUserSession, label);
     }
 
+    @Override
+    public List<String> parseRequestedSnapshotLabels(String scpCommand) {
+        Matcher matcher = SCP_COMMAND_PATTERN.matcher(scpCommand);
+        if (matcher.find()) {
+            String snapshotLabels = matcher.group(1);
+            String[] labelArray = snapshotLabels.split("\\s+");
+            return Arrays.asList(labelArray);
+        }
+        return null;
+    }
+
+    @Override
+    public String stripRequestedSnapshotLabels(final String scpCommand) {
+        Matcher matcher = SCP_COMMAND_PATTERN.matcher(scpCommand);
+        if (matcher.find()) {
+            return scpCommand.replace(matcher.group(1), "/");
+        }
+        return scpCommand;
+    }
 }

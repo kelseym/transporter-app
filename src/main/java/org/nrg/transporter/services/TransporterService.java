@@ -30,4 +30,8 @@ public interface TransporterService {
     List<String> getAvailablePayloadLabels(XnatUserSession xnatUserSession);
 
     Optional<Payload> getPayload(XnatUserSession xnatUserSession, String label);
+
+    List<String> parseRequestedSnapshotLabels(final String scpCommand);
+
+    String stripRequestedSnapshotLabels(final String scpCommand);
 }

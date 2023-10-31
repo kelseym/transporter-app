@@ -72,10 +72,6 @@ public class DefaultScpServerServiceTest {
                 .thenReturn(Optional.ofNullable(XnatUserSession.builder().build()));
         Path testRootPath = Paths.get(getClass().getClassLoader()
                 .getResource("TestRootPath").getPath());
-        when(authenticationService.
-                resolveRootPath(anyString(), anyString()))
-                .thenReturn(testRootPath);
-
     }
 
     // Get populated sshdConfig object

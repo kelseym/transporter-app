@@ -12,8 +12,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.nrg.transporter.config.TransporterTestConfig;
 import org.nrg.transporter.model.SshdConfig;
+import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
+import org.nrg.transporter.services.PayloadService;
 import org.nrg.transporter.services.ScpServerService;
+import org.nrg.transporter.services.TransporterService;
+import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,11 +25,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.List;
+import java.util.Optional;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 
 /*
@@ -40,6 +44,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class XnatIntegrationTest {
 
     @Autowired private ScpServerService scpServerService;
+    @Autowired private AuthenticationService authenticationService;
+    @Autowired private PayloadService payloadService;
+    @Autowired private TransporterService transporterService;
 
     final String TEST_HOST = "localhost";
     final Integer TEST_PORT = 2222;
@@ -47,8 +54,13 @@ public class XnatIntegrationTest {
     final String TEST_PASS = "admin";
     final String TEST_SNAPSHOT = "SamplePayload";
 
+    private XnatUserSession userSession;
+
     @Before
     public void setUp() throws Exception {
+        userSession = authenticationService.authenticate(TEST_USER, TEST_PASS).get();
+
+        // mount /data/xnat/build according to transporter config
 
     }
 
@@ -91,5 +103,50 @@ public class XnatIntegrationTest {
         }
     }
 
+
+    private List<String> getPayloadLabels() {
+        List<String> availablePayloadLabels = payloadService.getAvailablePayloadLabels(userSession);
+        assertThat(availablePayloadLabels.size(), greaterThan(0));
+        return availablePayloadLabels;
+    }
+
+    @Test
+    public void getUserSession() throws Exception {
+        assertThat(userSession, is(true));
+    }
+    @Test
+    public void testPayloadServiceListing() throws Exception {
+        List<String> availablePayloadLabels = getPayloadLabels();
+        assertThat(availablePayloadLabels.size(), greaterThan(0));
+    }
+
+    @Test
+    public void testPayloadServiceGetDirectory() throws Exception {
+        String payloadLabel = getPayloadLabels().get(0);
+        Optional<Payload> payload = payloadService.getPayload(userSession, payloadLabel);
+        assertThat(payload.isPresent(), is(true));
+        assertThat(payload.get().getType(), is(Payload.Type.DIRECTORY));
+    }
+
+    @Test
+    public void testPayloadServiceQuery() throws Exception {
+        String payloadLabel = getPayloadLabels().get(0);
+        Optional<Payload> payload = payloadService.getPayload(userSession, payloadLabel);
+        assertThat(payload.isPresent(), is(true));
+        assertThat(payload.get().getType(), is(Payload.Type.DIRECTORY));
+    }
+
+    @Test
+    public void testScpCommandValidation() throws Exception {
+        String payloadLabel = getPayloadLabels().get(0);
+
+        // Use the payload label to get the payload directory
+        transporterService.startScpServer(TEST_PORT);
+
+
+
+
+
+    }
 
 }

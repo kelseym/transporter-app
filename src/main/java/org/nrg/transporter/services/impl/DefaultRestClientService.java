@@ -6,6 +6,7 @@ import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
+import org.nrg.xnatx.plugins.transporter.model.TransporterPathMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -38,9 +39,13 @@ public class DefaultRestClientService implements RestClientService {
     private static final String XNAT_JSESSION_URL = "/data/JSESSION";
     private static final String XNAT_TOKEN_URL = "/data/services/tokens/issue";
 
+    private static final ParameterizedTypeReference<List<Payload>> payloadListType = new ParameterizedTypeReference<List<Payload>>() {};
+    private static final ParameterizedTypeReference<Payload> payloadType = new ParameterizedTypeReference<Payload>() {};
+
+    private static final ParameterizedTypeReference<List<DataSnap>> dataSnapListType = new ParameterizedTypeReference<List<DataSnap>>() {};
 
     public DefaultRestClientService(TransporterConfig transporterConfig) {
-        this.xnatUrl = addHttp(transporterConfig.getXnatHost()) + ":" + transporterConfig.getXnatPort();
+        this.xnatUrl = addHttp(transporterConfig.getXnatHost());
     }
 
     @Bean
@@ -77,7 +82,7 @@ public class DefaultRestClientService implements RestClientService {
                 restTemplate.exchange(snapshotsUrl,
                         HttpMethod.GET,
                         null,
-                        new ParameterizedTypeReference<List<DataSnap>>() {});
+                        dataSnapListType);
 
         return response.getBody();
     }
@@ -89,15 +94,15 @@ public class DefaultRestClientService implements RestClientService {
 
     @Override
     public List<Payload> getAvailablePayloads(XnatUserSession xnatUserSession) {
-        return getAvailablePayloads(xnatUserSession.getUsername(), xnatUserSession.getJsessionid());
+        return getAvailablePayloads(xnatUserSession.getJsessionid());
     }
 
-    private List<Payload> getAvailablePayloads(String username, String jsessionid) {
+    private List<Payload> getAvailablePayloads(String jsessionid) {
         // Load available snapshots from XNAT
         String snapshotsUrl = xnatUrl + DATA_PAYLOADS_URL;
 
         RestTemplate restTemplate = restTemplateBuilder
-                .basicAuthentication(username, jsessionid)
+                .defaultHeader("Cookie", "JSESSIONID=" + jsessionid)
                 .defaultHeader("Accept", "application/json")
                 .build();
 
@@ -105,30 +110,32 @@ public class DefaultRestClientService implements RestClientService {
                 restTemplate.exchange(snapshotsUrl,
                         HttpMethod.GET,
                         null,
-                        new ParameterizedTypeReference<List<Payload>>() {});
+                        payloadListType);
 
         return response.getBody();
     }
 
     @Override
     public Optional<Payload> getPayload(XnatUserSession xnatUserSession, String label) {
-        return Optional.ofNullable(getPayload(xnatUserSession.getUsername(), xnatUserSession.getJsessionid(), label));
+        return Optional.ofNullable(getPayload(xnatUserSession.getJsessionid(), label));
     }
 
-    private Payload getPayload(String username, String jsessionid, String label) {
+    private Payload getPayload(String jsessionid, String label) {
         // Load available snapshots from XNAT
         String snapshotsUrl = xnatUrl + DATA_PAYLOAD_URL;
 
         RestTemplate restTemplate = restTemplateBuilder
-                .basicAuthentication(username, jsessionid)
+                .defaultHeader("Cookie", "JSESSIONID=" + jsessionid)
                 .defaultHeader("Accept", "application/json")
                 .build();
 
         ResponseEntity<Payload> response =
-                restTemplate.exchange(snapshotsUrl,
+                restTemplate.exchange(
+                        snapshotsUrl,
                         HttpMethod.GET,
                         null,
-                        new ParameterizedTypeReference<Payload>() {});
+                        payloadType,
+                        label);
 
         return response.getBody();
     }

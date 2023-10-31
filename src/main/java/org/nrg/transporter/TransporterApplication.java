@@ -15,7 +15,7 @@ public class TransporterApplication {
         SpringApplication.run(TransporterApplication.class, args);
 
         // SCP Command from MACOS
-        // scp -P 22 -rp -O  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/nulladmin@localhost:/ ./
+        // scp -P 22 -rp -O  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@localhost:/ ./
     }
 
     @Bean

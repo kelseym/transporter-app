@@ -4,14 +4,21 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'maven-publish'
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'com.bmuschko.docker-spring-boot-application' version '6.1.4'
 }
 
+import com.bmuschko.gradle.docker.tasks.image.*
+import com.bmuschko.gradle.docker.tasks.container.*
+
+archivesBaseName = 'xnat-transporter-app'
+version = '0.1.0'
+
 group "org.nrg.xnatx.services"
-version "0.1.0"
 description "XNAT Transporter Application"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 def vApacheSshd = "2.10.0"
 
@@ -40,15 +47,42 @@ dependencies {
     testImplementation "org.springframework.security:spring-security-config"
     testImplementation "org.mockito:mockito-core"
     testImplementation "javax.servlet:javax.servlet-api"
-    testImplementation "com.h2database:h2"
     testImplementation "org.springframework:spring-jdbc"
     testImplementation "org.springframework:spring-orm"
     testImplementation "org.apache.commons:commons-dbcp2"
-    testImplementation 'org.mockito:mockito-all:1.10.19'
     testImplementation "org.powermock:powermock-module-junit4:2.0.7"
     testImplementation "org.powermock:powermock-module-junit4-rule:2.0.7"
     testImplementation "org.powermock:powermock-api-mockito2:2.0.7"
     testImplementation "org.awaitility:awaitility"
 
-
 }
+
+
+tasks.named("bootJar") {
+    archiveClassifier = 'all'
+}
+
+tasks.named("jar") {
+    archiveClassifier = ''
+}
+
+task createDockerFile(type: Dockerfile) {
+    from 'openjdk:11'
+    copyFile bootJar.getArchiveFileName().get(), '/app/' + bootJar.getArchiveFileName().get()
+    entryPoint 'java'
+    defaultCommand '-jar', '/app/' + bootJar.archiveFileName.get()
+    exposePort 2222
+}
+
+task syncJar(type: Copy) {
+    dependsOn assemble
+    from jar.destinationDirectory
+    into "$buildDir/docker"
+}
+
+task buildImage(type: DockerBuildImage) {
+    dependsOn build, createDockerFile, syncJar
+    inputDir = createDockerFile.getDestDir()
+    images = ["xnat/" + archivesBaseName + ":" + version]
+}
+

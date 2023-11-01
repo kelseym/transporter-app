@@ -1,6 +1,5 @@
 package org.nrg.transporter.mina;
 
-import com.sun.source.doctree.AttributeTree;
 import org.apache.sshd.common.AttributeRepository;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.xnatx.plugins.transporter.model.Payload;

@@ -15,6 +15,7 @@ import java.util.List;
 
 public class SnapshotVirtualFileSystemFactory extends VirtualFileSystemFactory {
 
+
     @Override
     public FileSystem createFileSystem(SessionContext session) throws IOException {
         //Path dir = getUserHomeDir(session);

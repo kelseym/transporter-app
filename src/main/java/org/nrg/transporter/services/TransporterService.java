@@ -4,6 +4,7 @@ import org.nrg.transporter.model.ServerStatus;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
+import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,4 +35,8 @@ public interface TransporterService {
     List<String> parseRequestedSnapshotLabels(final String scpCommand);
 
     String stripRequestedSnapshotLabels(final String scpCommand);
+
+    void postHeartbeat(XnatUserSession xnatUserSession, RemoteAppHeartbeat heartbeat);
+
+    RemoteAppHeartbeat getHeartbeat();
 }

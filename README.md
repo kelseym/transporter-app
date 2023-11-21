@@ -23,4 +23,4 @@ The Transporter Application is implemented as a Java Spring Boot application. Th
 
 ## Transporter Usage
 
-`scp -P 2222 -rp -O  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null username@host_url:snapshot_lable /destination/folder`
+`scp -P 2222 -rp -O  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null username@host_url:snapshot_label /destination/folder`

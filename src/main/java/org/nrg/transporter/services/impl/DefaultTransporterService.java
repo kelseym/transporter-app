@@ -4,13 +4,10 @@ import org.nrg.transporter.config.TransporterConfig;
 import org.nrg.transporter.model.ServerStatus;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.model.XnatUserSession;
-import org.nrg.transporter.services.AuthenticationService;
-import org.nrg.transporter.services.PayloadService;
-import org.nrg.transporter.services.RestClientService;
-import org.nrg.transporter.services.ScpServerService;
-import org.nrg.transporter.services.TransporterService;
+import org.nrg.transporter.services.*;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
+import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,11 +21,12 @@ import java.util.regex.Pattern;
 @Service
 public class DefaultTransporterService implements TransporterService {
 
-    RestClientService restClientService;
-    AuthenticationService authenticationService;
-    ScpServerService scpServerService;
-    PayloadService payloadService;
-    TransporterConfig transporterConfig;
+    private final RestClientService restClientService;
+    private final AuthenticationService authenticationService;
+    private final ScpServerService scpServerService;
+    private final PayloadService payloadService;
+    private final TransporterConfig transporterConfig;
+    private final HeartbeatService heartbeatService;
 
     private static String SCP_COMMAND_REGEX = "scp.*f\\s+(.+)$";
     private static Pattern SCP_COMMAND_PATTERN = Pattern.compile(SCP_COMMAND_REGEX);
@@ -37,12 +35,14 @@ public class DefaultTransporterService implements TransporterService {
 
     @Autowired
     public DefaultTransporterService(RestClientService restClientService, AuthenticationService authenticationService,
-                                     PayloadService payloadService, TransporterConfig transporterConfig) {
+                                     PayloadService payloadService, TransporterConfig transporterConfig,
+                                     HeartbeatService heartbeatService) {
         this.restClientService = restClientService;
         this.authenticationService = authenticationService;
         this.payloadService = payloadService;
         this.transporterConfig = transporterConfig;
         this.scpServerService = new DefaultScpServerService(authenticationService, this);
+        this.heartbeatService = heartbeatService;
     }
 
     // Check connection to XNAT
@@ -50,6 +50,7 @@ public class DefaultTransporterService implements TransporterService {
     public Boolean xnatHostStatus() {
         return restClientService.hostStatus();
     }
+
 
     //Start default SCP server
     @Override
@@ -115,5 +116,15 @@ public class DefaultTransporterService implements TransporterService {
             return scpCommand.replace(matcher.group(1), "/");
         }
         return scpCommand;
+    }
+
+    @Override
+    public void postHeartbeat(XnatUserSession xnatUserSession, RemoteAppHeartbeat heartbeat) {
+        restClientService.postHeartbeat(xnatUserSession, heartbeat);
+    }
+
+    @Override
+    public RemoteAppHeartbeat getHeartbeat() {
+        return heartbeatService.getHeartbeat();
     }
 }

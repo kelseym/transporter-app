@@ -2,16 +2,9 @@ package org.nrg.transporter.config;
 
 import org.mockito.Mockito;
 import org.nrg.transporter.mina.SshdPasswordAuthenticator;
-import org.nrg.transporter.services.AuthenticationService;
-import org.nrg.transporter.services.PayloadService;
-import org.nrg.transporter.services.RestClientService;
-import org.nrg.transporter.services.ScpServerService;
-import org.nrg.transporter.services.TransporterService;
-import org.nrg.transporter.services.impl.DefaultAuthenticationService;
-import org.nrg.transporter.services.impl.DefaultPayloadService;
-import org.nrg.transporter.services.impl.DefaultRestClientService;
-import org.nrg.transporter.services.impl.DefaultScpServerService;
-import org.nrg.transporter.services.impl.DefaultTransporterService;
+import org.nrg.transporter.services.*;
+import org.nrg.transporter.services.impl.*;
+import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +26,8 @@ public class TransporterTestConfig {
         return new DefaultTransporterService(mockRestClientService(),
                 mockAuthenticationService(),
                 mockPayloadService(),
-                transporterConfig());
+                transporterConfig(),
+                mockHeartbeatService());
     }
 
     @Profile("mock")
@@ -57,7 +51,7 @@ public class TransporterTestConfig {
     @Profile("mock")
     @Bean
     public SshdPasswordAuthenticator sshdPasswordAuthenticator() {
-        return new SshdPasswordAuthenticator(mockAuthenticationService());
+        return new SshdPasswordAuthenticator(mockAuthenticationService(), mockTransporterService());
     }
 
     @Profile("mock")
@@ -66,6 +60,11 @@ public class TransporterTestConfig {
         return Mockito.mock(PayloadService.class);
     }
 
+    @Profile("mock")
+    @Bean
+    public HeartbeatService mockHeartbeatService() {
+        return Mockito.mock(HeartbeatService.class);
+    }
 
 
     @Profile("xnat-integration")
@@ -73,13 +72,15 @@ public class TransporterTestConfig {
     public ScpServerService scpServerService() {
         return new DefaultScpServerService(authenticationService(), transporterService());
     }
+
     @Profile("xnat-integration")
     @Bean
     public TransporterService transporterService() {
         return new DefaultTransporterService(restClientService(),
                 authenticationService(),
                 payloadService(),
-                transporterConfig());
+                transporterConfig(),
+                heartbeatService());
     }
 
     @Profile("xnat-integration")
@@ -113,4 +114,9 @@ public class TransporterTestConfig {
         return new RestTemplateBuilder();
     }
 
+    @Profile("xnat-integration")
+    @Bean
+    public HeartbeatService heartbeatService() {
+        return new DefaultHeartbeatService(restClientService(), transporterConfig());
+    }
 }

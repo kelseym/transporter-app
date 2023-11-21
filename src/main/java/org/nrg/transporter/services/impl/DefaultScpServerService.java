@@ -32,7 +32,8 @@ public class DefaultScpServerService implements ScpServerService {
     public Long addScpServer(SshdConfig sshdConfig) throws IOException {
         sshdServer = SshServer.setUpDefaultServer();
         sshdServer.setPort(sshdConfig.getPort());
-        sshdServer.setPasswordAuthenticator(new SshdPasswordAuthenticator(authenticationService));
+        sshdServer.setPasswordAuthenticator(
+                new SshdPasswordAuthenticator(authenticationService, transporterService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         sshdServer.setCommandFactory(new CustomScpCommandFactory(transporterService));
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());

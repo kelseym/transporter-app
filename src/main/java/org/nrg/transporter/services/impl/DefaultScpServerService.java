@@ -1,42 +1,57 @@
 package org.nrg.transporter.services.impl;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.nrg.transporter.mina.ScpIoEventListener;
 import org.nrg.transporter.mina.CustomScpCommandFactory;
+import org.nrg.transporter.mina.ScpSessionListener;
 import org.nrg.transporter.mina.SnapshotVirtualFileSystemFactory;
 import org.nrg.transporter.mina.SshdPasswordAuthenticator;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.services.AuthenticationService;
-import org.nrg.transporter.services.PayloadService;
+import org.nrg.transporter.services.HistoryService;
 import org.nrg.transporter.services.ScpServerService;
 import org.nrg.transporter.services.TransporterService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
+import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class DefaultScpServerService implements ScpServerService {
 
-    private SshServer sshdServer;
-    private AuthenticationService authenticationService;
-    private TransporterService transporterService;
+    private final AuthenticationService authenticationService;
+    private final TransporterService transporterService;
+    private final HistoryService historyService;
+    private Map<Integer, SshServer> sshdServerMap = new ConcurrentHashMap<>();
 
-    public DefaultScpServerService(AuthenticationService authenticationService, TransporterService transporterService) {
+    public DefaultScpServerService(AuthenticationService authenticationService,
+                                   TransporterService transporterService, HistoryService historyService) {
         this.authenticationService = authenticationService;
         this.transporterService = transporterService;
+        this.historyService = historyService;
     }
 
     @Override
-    public Long addScpServer(SshdConfig sshdConfig) throws IOException {
-        sshdServer = SshServer.setUpDefaultServer();
+    public Integer addScpServer(SshdConfig sshdConfig) throws IOException {
+        // If the server is already running, stop it
+        if (sshdServerMap.containsKey(sshdConfig.getPort())) {
+            removeScpServer(sshdConfig.getPort());
+        }
+
+
+        SshServer sshdServer = SshServer.setUpDefaultServer();
         sshdServer.setPort(sshdConfig.getPort());
         sshdServer.setPasswordAuthenticator(
-                new SshdPasswordAuthenticator(authenticationService, transporterService));
+                new SshdPasswordAuthenticator(authenticationService, transporterService, historyService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         sshdServer.setCommandFactory(new CustomScpCommandFactory(transporterService));
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
+
+        //sshdServer.setIoServiceEventListener(new ScpIoEventListener(historyService));
+        //sshdServer.addSessionListener(new ScpSessionListener(historyService));
 
         // TODO: Add event listener to SCP server to handle logging
 /*        scpCommandFactory.addEventListener(new ScpTransferEventListener() {
@@ -50,14 +65,26 @@ public class DefaultScpServerService implements ScpServerService {
             }
         });
 */
-
-        //TODO: Add server ID to XNAT via passthrough service
         //TODO: Add session log listener
         sshdServer.start();
-
-        //TODO: return the id of the scp server
-        return 0L;
+        sshdServerMap.put(sshdConfig.getPort(), sshdServer);
+        return sshdServer.getPort();
     }
 
+    @Override
+    public void removeScpServer(Integer port) throws IOException {
+        SshServer sshdServer = sshdServerMap.get(port);
+        if (sshdServer != null) {
+            sshdServer.stop();
+            sshdServerMap.remove(port);
+        }
+    }
+
+    @PreDestroy
+    public void removeScpServers() throws IOException {
+        for (Integer port : sshdServerMap.keySet()) {
+            removeScpServer(port);
+        }
+    }
 
 }

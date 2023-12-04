@@ -4,8 +4,7 @@ import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
-import org.nrg.xnatx.plugins.transporter.model.TransporterPathMapping;
-
+import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,4 +27,8 @@ public interface RestClientService {
     Optional<XnatUserSession> getXnatToken(String username, String password);
 
     Optional<XnatUserSession> getXnatToken(String username, String password, String alias, int duration);
+
+    Boolean postSessionUpdate(XnatUserSession xnatUserSession,
+                           String messageId,
+                           TransporterActivityItem.TransporterActivityItemCreator historyItem);
 }

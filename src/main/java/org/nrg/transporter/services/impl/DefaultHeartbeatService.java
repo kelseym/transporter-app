@@ -27,25 +27,24 @@ public class DefaultHeartbeatService implements HeartbeatService {
     }
     @Override
     public void initialize() {
-        runPeriodicTask();
-    }
-
-    @Override
-    @Scheduled(fixedRate = 60000) // 60 seconds
-    public void runPeriodicTask() {
-        heartbeat = getHeartbeat();
+        refreshHeartbeat();
     }
 
     @Override
     public RemoteAppHeartbeat getHeartbeat() {
+        return heartbeat;
+    }
+
+    @Scheduled(fixedRate = 60000) // 60 seconds
+    public void refreshHeartbeat() {
         String host = "";
         try {
             host = InetAddress.getLocalHost().getHostAddress();
         } catch (Throwable e) {
-            log.debug("Unable to get host address", e);
+            log.error("Unable to get host address", e);
         }
         Boolean xnatConnectionStatus = restClientService.hostStatus();
-        return RemoteAppHeartbeat.builder()
+        heartbeat =  RemoteAppHeartbeat.builder()
                 .status(xnatConnectionStatus ? "OK" : "ERROR")
                 .message(xnatConnectionStatus ? "XNAT Connection OK" : "XNAT Connection Error")
                 .remoteAppId(transporterConfig.getRemoteAppId())

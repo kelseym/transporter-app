@@ -26,8 +26,8 @@ public class TransporterTestConfig {
         return new DefaultTransporterService(mockRestClientService(),
                 mockAuthenticationService(),
                 mockPayloadService(),
-                transporterConfig(),
-                mockHeartbeatService());
+                mockHistoryService(),
+                transporterConfig());
     }
 
     @Profile("mock")
@@ -45,13 +45,13 @@ public class TransporterTestConfig {
     @Profile("mock")
     @Bean
     public ScpServerService mockScpServerService() {
-        return new DefaultScpServerService(mockAuthenticationService(), transporterService());
+        return new DefaultScpServerService(mockAuthenticationService(), transporterService(), mockHistoryService());
     }
 
     @Profile("mock")
     @Bean
     public SshdPasswordAuthenticator sshdPasswordAuthenticator() {
-        return new SshdPasswordAuthenticator(mockAuthenticationService(), mockTransporterService());
+        return new SshdPasswordAuthenticator(mockAuthenticationService(), mockTransporterService(), mockHistoryService());
     }
 
     @Profile("mock")
@@ -66,11 +66,17 @@ public class TransporterTestConfig {
         return Mockito.mock(HeartbeatService.class);
     }
 
+    @Profile("mock")
+    @Bean
+    public HistoryService mockHistoryService() {
+        return Mockito.mock(HistoryService.class);
+    }
+
 
     @Profile("xnat-integration")
     @Bean
     public ScpServerService scpServerService() {
-        return new DefaultScpServerService(authenticationService(), transporterService());
+        return new DefaultScpServerService(authenticationService(), transporterService(), historyService());
     }
 
     @Profile("xnat-integration")
@@ -79,8 +85,8 @@ public class TransporterTestConfig {
         return new DefaultTransporterService(restClientService(),
                 authenticationService(),
                 payloadService(),
-                transporterConfig(),
-                heartbeatService());
+                historyService(),
+                transporterConfig());
     }
 
     @Profile("xnat-integration")
@@ -118,5 +124,11 @@ public class TransporterTestConfig {
     @Bean
     public HeartbeatService heartbeatService() {
         return new DefaultHeartbeatService(restClientService(), transporterConfig());
+    }
+
+    @Profile("xnat-integration")
+    @Bean
+    public HistoryService historyService() {
+        return new DefaultHistoryService(restClientService(), heartbeatService());
     }
 }

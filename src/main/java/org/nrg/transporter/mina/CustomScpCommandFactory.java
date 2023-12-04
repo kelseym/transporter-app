@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,13 +23,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Component
-@Scope("prototype")
 public class CustomScpCommandFactory extends ScpCommandFactory{
 
     private final TransporterService transporterService;
 
-    @Autowired
     public CustomScpCommandFactory(TransporterService transporterService) {
         super();
         this.transporterService = transporterService;
@@ -52,9 +50,16 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
             serverSession.setAttribute(SessionAttributes.COMMAND, command);
             return new ScpCommandFactory().createCommand(channelSession, command);
         } catch (DisconnectException e) {
+            // TODO: Handle empty snapshot request without throwing exception
             throw new IOException(e);
         }
     }
+
+    private void createTargetDirectory() throws IOException {
+        java.nio.file.Files.createDirectory(new File("/tmp/transporter").toPath());
+    }
+
+
 
     private List<String> validatePayloadRequests(String command, ServerSession session, XnatUserSession xnatUserSession)
             throws IOException, DisconnectException {

@@ -101,7 +101,7 @@ public class DefaultScpServerServiceTest {
     @Test
     public void testScpServerServiceStartServer() throws Exception {
         final Integer TEST_PORT = 2222;
-        Long serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
+        Integer serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
     }
 
     // Integration test for the SCP server.
@@ -110,7 +110,7 @@ public class DefaultScpServerServiceTest {
     @Test
     public void testScpService() throws Exception {
 
-        Long serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
+        Integer serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
         assertThat(serverId, is(not(nullValue())));
 
         SshClient client = SshClient.setUpDefaultClient();
@@ -136,7 +136,7 @@ public class DefaultScpServerServiceTest {
 
         final File downloadDir = temporaryFolder.newFolder("download");
 
-        Long serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
+        Integer serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
         assertThat(serverId, is(not(nullValue())));
 
         SshClient client = SshClient.setUpDefaultClient();

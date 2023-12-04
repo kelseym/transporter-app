@@ -8,7 +8,7 @@ import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
-import org.nrg.xnatx.plugins.transporter.model.TransporterPathMapping;
+import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +42,7 @@ public class DefaultRestClientService implements RestClientService {
     private static final String XNAT_JSESSION_URL = "/data/JSESSION";
     private static final String XNAT_TOKEN_URL = "/data/services/tokens/issue";
     private static final String HEARTBEAT_URL = "/xapi/transporter/heartbeat";
-
+    private static final String REMOTE_ACTIVITY_URL = "/xapi/transporter/activity";
     private static final ParameterizedTypeReference<List<Payload>> payloadListType = new ParameterizedTypeReference<List<Payload>>() {};
     private static final ParameterizedTypeReference<Payload> payloadType = new ParameterizedTypeReference<Payload>() {};
 
@@ -88,7 +88,7 @@ public class DefaultRestClientService implements RestClientService {
 
     private void postHeartbeat(String jsessionid, RemoteAppHeartbeat heartbeat) {
         log.debug("Posting heartbeat to XNAT at " + xnatUrl);
-        String heartbeatUrl = xnatUrl + HEARTBEAT_URL;
+        String heartbeatUrl = xnatUrl + HEARTBEAT_URL + "/" + heartbeat.getRemoteAppId();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -232,6 +232,42 @@ public class DefaultRestClientService implements RestClientService {
 //
 
         return Optional.empty();
+    }
+
+    @Override
+    public Boolean postSessionUpdate(XnatUserSession xnatUserSession,
+                                     String messageId,
+                                     TransporterActivityItem.TransporterActivityItemCreator activityItem){
+        if (xnatUserSession != null) {
+            activityItem.setUsername(xnatUserSession.getUsername());
+            return postSessionUpdate(xnatUserSession.getJsessionid(), messageId, activityItem);
+        } else {
+            log.error("No XNAT session found for user {}. Skipping session activity update.", xnatUserSession.getUsername());
+            return false;
+        }
+    }
+
+    private Boolean postSessionUpdate(String jsessionid,
+                                  String messageId,
+                                  TransporterActivityItem.TransporterActivityItemCreator activityItem) {
+        log.info("Posting session update to XNAT at " + xnatUrl);
+        String activityUrl = xnatUrl + REMOTE_ACTIVITY_URL + "/?message_id=" + messageId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Cookie", "JSESSIONID=" + jsessionid);
+        HttpEntity<TransporterActivityItem.TransporterActivityItemCreator> requestEntity =
+                new HttpEntity<>(activityItem, headers);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> responseEntity =
+                restTemplate.postForEntity(activityUrl, requestEntity, String.class);
+        if (responseEntity != null && responseEntity.getStatusCode().is2xxSuccessful()) {
+            log.info("Status update sent successfully");
+            return true;
+        } else {
+            log.error("Failed to send status update. Status code: " + (responseEntity != null ? responseEntity.getStatusCode() : "null"));
+            return false;
+        }
     }
 
     private String addHttp(String xnatHost) {

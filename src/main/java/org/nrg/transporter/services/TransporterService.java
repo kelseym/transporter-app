@@ -4,7 +4,6 @@ import org.nrg.transporter.model.ServerStatus;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
-import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,10 +14,10 @@ public interface TransporterService {
     Boolean xnatHostStatus();
 
     //Start default SCP server
-    Long startScpServer() throws IOException;
+    Integer startScpServer() throws IOException;
 
     // Start default SCP server
-    Long startScpServer(Integer port) throws IOException;
+    Integer startScpServer(Integer port) throws IOException;
 
     List<ServerStatus> scpServerStatus();
 
@@ -36,7 +35,4 @@ public interface TransporterService {
 
     String stripRequestedSnapshotLabels(final String scpCommand);
 
-    void postHeartbeat(XnatUserSession xnatUserSession, RemoteAppHeartbeat heartbeat);
-
-    RemoteAppHeartbeat getHeartbeat();
 }

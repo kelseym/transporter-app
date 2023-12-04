@@ -6,8 +6,5 @@ import org.springframework.scheduling.annotation.Scheduled;
 public interface HeartbeatService {
     void initialize();
 
-    @Scheduled(fixedRate = 60000) // 60 seconds
-    void runPeriodicTask();
-
     RemoteAppHeartbeat getHeartbeat();
 }

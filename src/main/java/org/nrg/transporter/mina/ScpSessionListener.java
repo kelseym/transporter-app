@@ -6,9 +6,11 @@ import org.apache.sshd.common.session.SessionListener;
 import org.apache.sshd.common.session.Session;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.HistoryService;
+import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import static org.nrg.transporter.mina.SessionAttributes.REQUESTED_SNAPSHOTS;
 import static org.nrg.transporter.mina.SessionAttributes.XNAT_USER_SESSION;
@@ -56,6 +58,11 @@ public class ScpSessionListener implements SessionListener {
                     TransporterActivityItem.TransporterActivityItemCreator.builder()
                             .username(session.getUsername())
                             .event(message)
+                            .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
+                                    session.getAttribute(REQUESTED_SNAPSHOTS)
+                                            .stream()
+                                            .map(Payload::getLabel).collect(Collectors.toList())
+                                            .toString() : "")
                             .remoteAppHeartbeat(historyService.getHeartbeat())
                             .timestamp(LocalDateTime.now())
                             .build());
@@ -73,6 +80,11 @@ public class ScpSessionListener implements SessionListener {
                     TransporterActivityItem.TransporterActivityItemCreator.builder()
                             .username(session.getUsername())
                             .event(message)
+                            .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
+                                    session.getAttribute(REQUESTED_SNAPSHOTS)
+                                            .stream()
+                                            .map(Payload::getLabel).collect(Collectors.toList())
+                                            .toString() : "")
                             .remoteAppHeartbeat(historyService.getHeartbeat())
                             .timestamp(LocalDateTime.now())
                             .build());

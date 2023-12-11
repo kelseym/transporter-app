@@ -50,8 +50,8 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setCommandFactory(new CustomScpCommandFactory(transporterService));
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
-        //sshdServer.setIoServiceEventListener(new ScpIoEventListener(historyService));
-        //sshdServer.addSessionListener(new ScpSessionListener(historyService));
+        sshdServer.setIoServiceEventListener(new ScpIoEventListener(historyService));
+        sshdServer.addSessionListener(new ScpSessionListener(historyService));
 
         // TODO: Add event listener to SCP server to handle logging
 /*        scpCommandFactory.addEventListener(new ScpTransferEventListener() {

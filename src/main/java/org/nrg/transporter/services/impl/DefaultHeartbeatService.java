@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -19,11 +20,13 @@ public class DefaultHeartbeatService implements HeartbeatService {
     private final RestClientService restClientService;
     private final TransporterConfig transporterConfig;
     private RemoteAppHeartbeat heartbeat;
+    private final LocalDateTime firstHeartbeat;
 
     public DefaultHeartbeatService(final RestClientService restClientService,
                                    final TransporterConfig transporterConfig) {
         this.restClientService = restClientService;
         this.transporterConfig = transporterConfig;
+        firstHeartbeat = LocalDateTime.now();
     }
     @Override
     public void initialize() {
@@ -44,6 +47,7 @@ public class DefaultHeartbeatService implements HeartbeatService {
             log.error("Unable to get host address", e);
         }
         Boolean xnatConnectionStatus = restClientService.hostStatus();
+        LocalDateTime now = LocalDateTime.now();
         heartbeat =  RemoteAppHeartbeat.builder()
                 .status(xnatConnectionStatus ? "OK" : "ERROR")
                 .message(xnatConnectionStatus ? "XNAT Connection OK" : "XNAT Connection Error")
@@ -51,7 +55,8 @@ public class DefaultHeartbeatService implements HeartbeatService {
                 .remoteHost(host)
                 .xnatHost(transporterConfig.getXnatHost() + ":" + transporterConfig.getXnatPort())
                 .xnatConnectionStatus(xnatConnectionStatus ? "Connected" : "Disconnected")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(now)
+                .uptime(java.time.Duration.between(firstHeartbeat, now).toSeconds())
                 .build();
     }
 

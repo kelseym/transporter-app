@@ -133,8 +133,8 @@ public class DefaultRestClientService implements RestClientService {
     }
 
     private List<Payload> getAvailablePayloads(String jsessionid) {
-        // Load available snapshots from XNAT
-        String snapshotsUrl = xnatUrl + DATA_PAYLOADS_URL;
+        // Load available payloads from XNAT
+        String payloadUrl = xnatUrl + DATA_PAYLOADS_URL;
 
         RestTemplate restTemplate = restTemplateBuilder
                 .defaultHeader("Cookie", "JSESSIONID=" + jsessionid)
@@ -142,7 +142,7 @@ public class DefaultRestClientService implements RestClientService {
                 .build();
 
         ResponseEntity<List<Payload>> response =
-                restTemplate.exchange(snapshotsUrl,
+                restTemplate.exchange(payloadUrl,
                         HttpMethod.GET,
                         null,
                         payloadListType);
@@ -156,8 +156,8 @@ public class DefaultRestClientService implements RestClientService {
     }
 
     private Payload getPayload(String jsessionid, String label) {
-        // Load available snapshots from XNAT
-        String snapshotsUrl = xnatUrl + DATA_PAYLOAD_URL;
+        // Load payload from XNAT
+        String payloadUrl = xnatUrl + DATA_PAYLOAD_URL;
 
         RestTemplate restTemplate = restTemplateBuilder
                 .defaultHeader("Cookie", "JSESSIONID=" + jsessionid)
@@ -166,7 +166,7 @@ public class DefaultRestClientService implements RestClientService {
 
         ResponseEntity<Payload> response =
                 restTemplate.exchange(
-                        snapshotsUrl,
+                        payloadUrl,
                         HttpMethod.GET,
                         null,
                         payloadType,

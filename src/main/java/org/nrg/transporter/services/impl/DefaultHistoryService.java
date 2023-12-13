@@ -2,10 +2,13 @@ package org.nrg.transporter.services.impl;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.sshd.common.session.Session;
+import org.apache.sshd.server.session.ServerSession;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.HeartbeatService;
 import org.nrg.transporter.services.HistoryService;
 import org.nrg.transporter.services.RestClientService;
+import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
 import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,10 @@ import javax.annotation.PreDestroy;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.stream.Collectors;
+
+import static org.nrg.transporter.mina.SessionAttributes.REQUESTED_SNAPSHOTS;
+import static org.nrg.transporter.mina.SessionAttributes.XNAT_USER_SESSION;
 
 @Service
 @Slf4j
@@ -33,17 +40,61 @@ public class DefaultHistoryService implements HistoryService {
         this.heartbeatService = heartbeatService;
     }
 
-    @Override
-    public void queueHistoryItem(XnatUserSession xnatUserSession,
+    private void queueHistoryItem(XnatUserSession xnatUserSession,
                                  TransporterActivityItem.TransporterActivityItemCreator historyItem) {
         historyQueue.addHistoryItem(xnatUserSession, historyItem);
     }
 
-    @Override
-    public void sendHistoryItem(XnatUserSession xnatUserSession,
+    private void sendHistoryItem(XnatUserSession xnatUserSession,
                                 TransporterActivityItem.TransporterActivityItemCreator historyItem) {
         queueHistoryItem(xnatUserSession, historyItem);
         flushHistoryItems();
+    }
+
+    @Override
+    public void queueHistoryItem(Session session, String message) {
+        XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
+        TransporterActivityItem.TransporterActivityItemCreator activityItemCreator =
+                TransporterActivityItem.TransporterActivityItemCreator.builder()
+                .username(session.getUsername())
+                .event(message)
+                .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
+                        session.getAttribute(REQUESTED_SNAPSHOTS)
+                                .stream()
+                                .map(Payload::getLabel).collect(Collectors.toList())
+                                .toString() : "")
+                .remoteAppHeartbeat(getHeartbeat())
+                .timestamp(LocalDateTime.now())
+                .build();
+        historyQueue.addHistoryItem(xnatUserSession, activityItemCreator);
+    }
+
+    @Override
+    public void queueHistoryItem(Session session, TransporterActivityItem.TransporterActivityItemCreator historyItem) {
+        XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
+        historyQueue.addHistoryItem(xnatUserSession, historyItem);
+    }
+
+    @Override
+    public void sendHistoryItem(Session session, String message) {
+        TransporterActivityItem.TransporterActivityItemCreator activityItemCreator =
+                TransporterActivityItem.TransporterActivityItemCreator.builder()
+                        .username(session.getUsername())
+                        .event(message)
+                        .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
+                                session.getAttribute(REQUESTED_SNAPSHOTS)
+                                        .stream()
+                                        .map(Payload::getLabel).collect(Collectors.toList())
+                                        .toString() : "")
+                        .remoteAppHeartbeat(getHeartbeat())
+                        .timestamp(LocalDateTime.now())
+                        .build();
+        sendHistoryItem(session, activityItemCreator);
+    }
+    @Override
+    public void sendHistoryItem(Session session, TransporterActivityItem.TransporterActivityItemCreator historyItem) {
+        XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
+        sendHistoryItem(xnatUserSession, historyItem);
     }
 
     @Scheduled(fixedRate = 10000) // 10 seconds

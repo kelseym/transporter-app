@@ -7,16 +7,19 @@ import org.apache.sshd.server.channel.ChannelSession;
 import org.nrg.transporter.exceptions.DisconnectException;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
+import org.nrg.transporter.services.HistoryService;
 import org.nrg.transporter.services.PayloadService;
 import org.nrg.transporter.services.TransporterService;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
+import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,10 +29,13 @@ import java.util.stream.Collectors;
 public class CustomScpCommandFactory extends ScpCommandFactory{
 
     private final TransporterService transporterService;
+    private final HistoryService historyService;
 
-    public CustomScpCommandFactory(TransporterService transporterService) {
+    public CustomScpCommandFactory(TransporterService transporterService, HistoryService historyService) {
         super();
         this.transporterService = transporterService;
+        this.historyService = historyService;
+        addEventListener(new CustomScpTransferEventListener(historyService));
     }
 
     @Override
@@ -50,21 +56,22 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
             serverSession.setAttribute(SessionAttributes.COMMAND, command);
             return new ScpCommandFactory().createCommand(channelSession, command);
         } catch (DisconnectException e) {
-            // TODO: Handle empty snapshot request without throwing exception
             throw new IOException(e);
         }
     }
 
-    private void createTargetDirectory() throws IOException {
-        java.nio.file.Files.createDirectory(new File("/tmp/transporter").toPath());
-    }
+    //private void createTargetDirectory() throws IOException {
+    //    java.nio.file.Files.createDirectory(new File("/tmp/transporter").toPath());
+    //}
 
 
 
     private List<String> validatePayloadRequests(String command, ServerSession session, XnatUserSession xnatUserSession)
             throws IOException, DisconnectException {
         List<String> availablePayloadLabels = transporterService.getAvailablePayloadLabels(xnatUserSession);
+        log.info("Available snapshots: {}", availablePayloadLabels);
         List<String> requestedSnapshots = transporterService.parseRequestedSnapshotLabels(command);
+        log.info("Requested snapshots: {}", requestedSnapshots);
         List<String> validSnapshotLabels =
                 requestedSnapshots == null ?
                         Collections.emptyList() :
@@ -75,11 +82,10 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
             String errorMessage = "No valid snapshots requested.";
             errorMessage += "\nRequested snapshots: " + requestedSnapshots;
             errorMessage += "\nAvailable snapshots: " + availablePayloadLabels;
-            throw new DisconnectException(session, errorMessage);
+            log.error(errorMessage);
+            disconnectWithMessage(session, errorMessage);
         }
-        else {
-            return validSnapshotLabels;
-        }
+        return validSnapshotLabels;
     }
 
     private String reformatCommand(ServerSession session, String command) throws DisconnectException, IOException {
@@ -94,6 +100,11 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
             throw new DisconnectException(session, "Command is not an scp command");
         }
         return transporterService.stripRequestedSnapshotLabels(command);
+    }
+
+    private void disconnectWithMessage(ServerSession session, String message) throws IOException {
+        historyService.queueHistoryItem(session,message);
+        session.disconnect(1, message);
     }
 
 

@@ -52,21 +52,7 @@ public class ScpSessionListener implements SessionListener {
 
 
     private void sendActivityHistory(Session session, String message) {
-        XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
-        if (xnatUserSession != null) {
-            historyService.sendHistoryItem(xnatUserSession,
-                    TransporterActivityItem.TransporterActivityItemCreator.builder()
-                            .username(session.getUsername())
-                            .event(message)
-                            .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
-                                    session.getAttribute(REQUESTED_SNAPSHOTS)
-                                            .stream()
-                                            .map(Payload::getLabel).collect(Collectors.toList())
-                                            .toString() : "")
-                            .remoteAppHeartbeat(historyService.getHeartbeat())
-                            .timestamp(LocalDateTime.now())
-                            .build());
-        }
+            historyService.sendHistoryItem(session, message);
     }
 
     private void queueActivityHistory(Session session, Event event) {
@@ -76,18 +62,7 @@ public class ScpSessionListener implements SessionListener {
     private void queueActivityMessage(Session session, String message) {
         XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
         if (xnatUserSession != null) {
-            historyService.queueHistoryItem(xnatUserSession,
-                    TransporterActivityItem.TransporterActivityItemCreator.builder()
-                            .username(session.getUsername())
-                            .event(message)
-                            .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
-                                    session.getAttribute(REQUESTED_SNAPSHOTS)
-                                            .stream()
-                                            .map(Payload::getLabel).collect(Collectors.toList())
-                                            .toString() : "")
-                            .remoteAppHeartbeat(historyService.getHeartbeat())
-                            .timestamp(LocalDateTime.now())
-                            .build());
+            historyService.queueHistoryItem(session, message);
         }
     }
 

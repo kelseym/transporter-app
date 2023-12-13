@@ -2,13 +2,11 @@ package org.nrg.transporter.services.impl;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.sshd.scp.server.ScpCommandFactory;
 import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.command.CommandFactory;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.nrg.transporter.mina.ScpIoEventListener;
-import org.nrg.transporter.mina.CustomScpCommandFactory;
-import org.nrg.transporter.mina.ScpSessionListener;
-import org.nrg.transporter.mina.SnapshotVirtualFileSystemFactory;
-import org.nrg.transporter.mina.SshdPasswordAuthenticator;
+import org.nrg.transporter.mina.*;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.services.AuthenticationService;
 import org.nrg.transporter.services.HistoryService;
@@ -47,7 +45,9 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setPasswordAuthenticator(
                 new SshdPasswordAuthenticator(authenticationService, transporterService, historyService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
-        sshdServer.setCommandFactory(new CustomScpCommandFactory(transporterService));
+        ScpCommandFactory scpCommandFactory = new ScpCommandFactory();
+        scpCommandFactory.setDelegateCommandFactory(new CustomScpCommandFactory(transporterService, historyService));
+        sshdServer.setCommandFactory(scpCommandFactory);
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
         sshdServer.setIoServiceEventListener(new ScpIoEventListener(historyService));

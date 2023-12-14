@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.sshd.common.session.Session;
 import org.apache.sshd.scp.common.ScpTransferEventListener;
 import org.apache.sshd.scp.common.helpers.ScpAckInfo;
-import org.nrg.transporter.services.HistoryService;
+import org.nrg.transporter.services.ActivityService;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -14,25 +14,25 @@ import java.util.Set;
 @Slf4j
 public class CustomScpTransferEventListener implements ScpTransferEventListener {
 
-    private final HistoryService historyService;
+    private final ActivityService activityService;
 
-    public CustomScpTransferEventListener(HistoryService historyService) {
-        this.historyService = historyService;
+    public CustomScpTransferEventListener(ActivityService activityService) {
+        this.activityService = activityService;
     }
 
     @Override
     public void startFileEvent(Session session, FileOperation op, Path file, long length, Set<PosixFilePermission> perms) {
-        log.debug("Started download: " + file.toString());
-        historyService.queueHistoryItem(session, "Started download: " + file.getFileName());
+        //log.debug("Started download: " + file.toString());
+        //activityService.queueHistoryItem(session, "Started download: " + file.getFileName());
     }
 
     @Override
     public void endFileEvent(Session session, FileOperation op, Path file, long length, Set<PosixFilePermission> perms, Throwable thrown) {
         if (thrown == null) {
-            historyService.queueHistoryItem(session, "Finished download: " + file.getFileName());
-            log.debug("Finished download: " + file.getFileName());
+            activityService.queueHistoryItem(session, "Downloaded: " + file.getFileName());
+            log.debug("Downloaded: " + file.getFileName());
         } else {
-            historyService.queueHistoryItem(session, "File download failed: " + file.getFileName());
+            activityService.queueHistoryItem(session, "File download failed: " + file.getFileName());
             log.error("File download failed: " + file.toString());
             log.error(thrown.getMessage());
         }

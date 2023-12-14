@@ -6,36 +6,26 @@ import org.apache.sshd.server.session.ServerSession;
 import org.apache.sshd.server.channel.ChannelSession;
 import org.nrg.transporter.exceptions.DisconnectException;
 import org.nrg.transporter.model.XnatUserSession;
-import org.nrg.transporter.services.AuthenticationService;
-import org.nrg.transporter.services.HistoryService;
-import org.nrg.transporter.services.PayloadService;
+import org.nrg.transporter.services.ActivityService;
 import org.nrg.transporter.services.TransporterService;
-import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
-import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CustomScpCommandFactory extends ScpCommandFactory{
 
     private final TransporterService transporterService;
-    private final HistoryService historyService;
+    private final ActivityService activityService;
 
-    public CustomScpCommandFactory(TransporterService transporterService, HistoryService historyService) {
+    public CustomScpCommandFactory(TransporterService transporterService, ActivityService activityService) {
         super();
         this.transporterService = transporterService;
-        this.historyService = historyService;
-        addEventListener(new CustomScpTransferEventListener(historyService));
+        this.activityService = activityService;
+        addEventListener(new CustomScpTransferEventListener(activityService));
     }
 
     @Override
@@ -67,18 +57,21 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
         }
     }
 
-    //private void createTargetDirectory() throws IOException {
-    //    java.nio.file.Files.createDirectory(new File("/tmp/transporter").toPath());
-    //}
-
-
 
     private List<String> validatePayloadRequests(String command, ServerSession session, XnatUserSession xnatUserSession)
             throws IOException, DisconnectException {
         List<String> availablePayloadLabels = transporterService.getAvailablePayloadLabels(xnatUserSession);
         log.info("Available snapshots: {}", availablePayloadLabels);
         List<String> requestedSnapshots = transporterService.parseRequestedSnapshotLabels(command);
+        if (requestedSnapshots!= null && requestedSnapshots.size()>1){
+            String errorMessage = "Multiple snapshots requested. Only one snapshot can be requested at a time.";
+            errorMessage += "\nRequested snapshots: " + requestedSnapshots;
+            errorMessage += "\nAvailable snapshots: " + availablePayloadLabels;
+            log.error(errorMessage);
+            disconnectWithMessage(session, errorMessage);
+        }
         log.info("Requested snapshots: {}", requestedSnapshots);
+
         List<String> validSnapshotLabels =
                 requestedSnapshots == null ?
                         Collections.emptyList() :
@@ -111,7 +104,7 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
 
     private void disconnectWithMessage(ServerSession session, String message) throws IOException {
         log.error(message);
-        historyService.queueHistoryItem(session,message);
+        activityService.queueHistoryItem(session,message);
         session.disconnect(1, message);
     }
 

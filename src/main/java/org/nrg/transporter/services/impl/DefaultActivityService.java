@@ -3,10 +3,9 @@ package org.nrg.transporter.services.impl;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.sshd.common.session.Session;
-import org.apache.sshd.server.session.ServerSession;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.HeartbeatService;
-import org.nrg.transporter.services.HistoryService;
+import org.nrg.transporter.services.ActivityService;
 import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
@@ -21,12 +20,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.stream.Collectors;
 
-import static org.nrg.transporter.mina.SessionAttributes.REQUESTED_SNAPSHOTS;
-import static org.nrg.transporter.mina.SessionAttributes.XNAT_USER_SESSION;
+import static org.nrg.transporter.mina.SessionAttributes.*;
 
 @Service
 @Slf4j
-public class DefaultHistoryService implements HistoryService {
+public class DefaultActivityService implements ActivityService {
 
 
     private final RestClientService restClientService;
@@ -34,26 +32,21 @@ public class DefaultHistoryService implements HistoryService {
     private HistoryQueue historyQueue = new HistoryQueue();
 
     @Autowired
-    public DefaultHistoryService(RestClientService restClientService,
-                                 HeartbeatService heartbeatService) {
+    public DefaultActivityService(RestClientService restClientService,
+                                  HeartbeatService heartbeatService) {
         this.restClientService = restClientService;
         this.heartbeatService = heartbeatService;
     }
 
-    private void queueHistoryItem(XnatUserSession xnatUserSession,
-                                 TransporterActivityItem.TransporterActivityItemCreator historyItem) {
-        historyQueue.addHistoryItem(xnatUserSession, historyItem);
-    }
-
-    private void sendHistoryItem(XnatUserSession xnatUserSession,
-                                TransporterActivityItem.TransporterActivityItemCreator historyItem) {
-        queueHistoryItem(xnatUserSession, historyItem);
-        flushHistoryItems();
-    }
-
     @Override
     public void queueHistoryItem(Session session, String message) {
+        String transportSessionId = getTransportSessionId(session);
         XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
+        if(xnatUserSession == null) {
+            log.error("XnatUserSession is null");
+            return;
+        }
+
         TransporterActivityItem.TransporterActivityItemCreator activityItemCreator =
                 TransporterActivityItem.TransporterActivityItemCreator.builder()
                 .username(session.getUsername())
@@ -63,6 +56,7 @@ public class DefaultHistoryService implements HistoryService {
                                 .stream()
                                 .map(Payload::getLabel).collect(Collectors.toList())
                                 .toString() : "")
+                .sessionId(transportSessionId)
                 .remoteAppHeartbeat(getHeartbeat())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -70,31 +64,9 @@ public class DefaultHistoryService implements HistoryService {
     }
 
     @Override
-    public void queueHistoryItem(Session session, TransporterActivityItem.TransporterActivityItemCreator historyItem) {
-        XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
-        historyQueue.addHistoryItem(xnatUserSession, historyItem);
-    }
-
-    @Override
     public void sendHistoryItem(Session session, String message) {
-        TransporterActivityItem.TransporterActivityItemCreator activityItemCreator =
-                TransporterActivityItem.TransporterActivityItemCreator.builder()
-                        .username(session.getUsername())
-                        .event(message)
-                        .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
-                                session.getAttribute(REQUESTED_SNAPSHOTS)
-                                        .stream()
-                                        .map(Payload::getLabel).collect(Collectors.toList())
-                                        .toString() : "")
-                        .remoteAppHeartbeat(getHeartbeat())
-                        .timestamp(LocalDateTime.now())
-                        .build();
-        sendHistoryItem(session, activityItemCreator);
-    }
-    @Override
-    public void sendHistoryItem(Session session, TransporterActivityItem.TransporterActivityItemCreator historyItem) {
-        XnatUserSession xnatUserSession = session.getAttribute(XNAT_USER_SESSION);
-        sendHistoryItem(xnatUserSession, historyItem);
+        queueHistoryItem(session, message);
+        flushHistoryItems();
     }
 
     @Scheduled(fixedRate = 10000) // 10 seconds
@@ -107,9 +79,8 @@ public class DefaultHistoryService implements HistoryService {
         return heartbeatService.getHeartbeat();
     }
 
-
     @PreDestroy
-    public void flushHistoryItems() {
+    private void flushHistoryItems() {
         log.info("Flushing history service items.");
         postActiveSessionActivity();
     }
@@ -128,6 +99,15 @@ public class DefaultHistoryService implements HistoryService {
             this.timestamp = LocalDateTime.now();
             this.messageId = java.util.UUID.randomUUID().toString().replace("-", "");
         }
+    }
+
+    private String getTransportSessionId(Session session) {
+        String tsid = session.getAttribute(TRANSPORT_SESSION_ID);
+        if (tsid == null) {
+            tsid = java.util.UUID.randomUUID().toString().replace("-", "");
+            session.setAttribute(TRANSPORT_SESSION_ID, tsid);
+        }
+        return tsid;
     }
 
     protected class HistoryQueue {
@@ -161,8 +141,6 @@ public class DefaultHistoryService implements HistoryService {
                 }
 
                 historyQueue.removeIf(item -> item.getTimestamp().isBefore(now));
-            } else {
-                log.debug("History queue is empty.");
             }
         }
     }

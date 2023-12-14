@@ -8,11 +8,8 @@ import org.apache.sshd.server.session.ServerSession;
 import org.nrg.transporter.exceptions.DisconnectException;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
-import org.nrg.transporter.services.HistoryService;
+import org.nrg.transporter.services.ActivityService;
 import org.nrg.transporter.services.TransporterService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -23,16 +20,16 @@ public class SshdPasswordAuthenticator implements PasswordAuthenticator {
 
     private final AuthenticationService authenticationService;
     private final TransporterService transporterService;
-    private final HistoryService historyService;
+    private final ActivityService activityService;
     private final ObjectMapper mapper = new ObjectMapper();
     private final ObjectWriter objectWriter;
 
     public SshdPasswordAuthenticator(AuthenticationService authenticationService,
                                      TransporterService transporterService,
-                                     HistoryService historyService) {
+                                     ActivityService activityService) {
         this.authenticationService = authenticationService;
         this.transporterService = transporterService;
-        this.historyService = historyService;
+        this.activityService = activityService;
         mapper.registerModule(new JavaTimeModule());
         objectWriter = mapper.writerWithDefaultPrettyPrinter();
     }
@@ -53,7 +50,7 @@ public class SshdPasswordAuthenticator implements PasswordAuthenticator {
                 failureMessage += transporterService.xnatHostStatus() ?
                         "\nXNAT authentication failed for user: " + username :
                         "\nXNAT host is not available. Check configuration.\n" +
-                                objectWriter.writeValueAsString(historyService.getHeartbeat());
+                                objectWriter.writeValueAsString(activityService.getHeartbeat());
                 throw new DisconnectException(session, failureMessage);
             } catch (DisconnectException | IOException e) {
                 throw new RuntimeException(e);

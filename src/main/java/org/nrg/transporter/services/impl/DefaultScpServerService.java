@@ -2,14 +2,12 @@ package org.nrg.transporter.services.impl;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.sshd.scp.server.ScpCommandFactory;
 import org.apache.sshd.server.SshServer;
-import org.apache.sshd.server.command.CommandFactory;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.nrg.transporter.mina.*;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.services.AuthenticationService;
-import org.nrg.transporter.services.HistoryService;
+import org.nrg.transporter.services.ActivityService;
 import org.nrg.transporter.services.ScpServerService;
 import org.nrg.transporter.services.TransporterService;
 import javax.annotation.PreDestroy;
@@ -22,14 +20,14 @@ public class DefaultScpServerService implements ScpServerService {
 
     private final AuthenticationService authenticationService;
     private final TransporterService transporterService;
-    private final HistoryService historyService;
+    private final ActivityService activityService;
     private Map<Integer, SshServer> sshdServerMap = new ConcurrentHashMap<>();
 
     public DefaultScpServerService(AuthenticationService authenticationService,
-                                   TransporterService transporterService, HistoryService historyService) {
+                                   TransporterService transporterService, ActivityService activityService) {
         this.authenticationService = authenticationService;
         this.transporterService = transporterService;
-        this.historyService = historyService;
+        this.activityService = activityService;
     }
 
     @Override
@@ -43,15 +41,15 @@ public class DefaultScpServerService implements ScpServerService {
         SshServer sshdServer = SshServer.setUpDefaultServer();
         sshdServer.setPort(sshdConfig.getPort());
         sshdServer.setPasswordAuthenticator(
-                new SshdPasswordAuthenticator(authenticationService, transporterService, historyService));
+                new SshdPasswordAuthenticator(authenticationService, transporterService, activityService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
-        CustomScpCommandFactory customScpCommandFactory = new CustomScpCommandFactory(transporterService, historyService);
-        customScpCommandFactory.addEventListener(new CustomScpTransferEventListener(historyService));
+        CustomScpCommandFactory customScpCommandFactory = new CustomScpCommandFactory(transporterService, activityService);
+        customScpCommandFactory.addEventListener(new CustomScpTransferEventListener(activityService));
         sshdServer.setCommandFactory(customScpCommandFactory);
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
-        sshdServer.setIoServiceEventListener(new ScpIoEventListener(historyService));
-        sshdServer.addSessionListener(new ScpSessionListener(historyService));
+        sshdServer.setIoServiceEventListener(new ScpIoEventListener(activityService));
+        sshdServer.addSessionListener(new ScpSessionListener(activityService));
 
         // TODO: Add event listener to SCP server to handle logging
 /*        scpCommandFactory.addEventListener(new ScpTransferEventListener() {

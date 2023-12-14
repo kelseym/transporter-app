@@ -19,11 +19,8 @@ public class SnapshotVirtualFileSystemFactory extends VirtualFileSystemFactory {
 
     @Override
     public FileSystem createFileSystem(SessionContext session) throws IOException {
-        //Path dir = getUserHomeDir(session);
-        //if (dir == null) {
-        //    throw new InvalidPathException(session.getUsername(), "Cannot resolve home directory");
-        //}
-        RootedFileSystemProvider rootedFileSystemProvider = new RootedFileSystemProvider();
+
+        RootedFileSystemProvider rootedFileSystemProvider = new ReadOnlyFileSystemProvider();
 
         FileSystem fileSystem = rootedFileSystemProvider.newFileSystem(
                 getRequestedSnapshotDir(session), Collections.emptyMap());
@@ -34,8 +31,6 @@ public class SnapshotVirtualFileSystemFactory extends VirtualFileSystemFactory {
 
     private Path getRequestedSnapshotDir(SessionContext session) {
         List<Payload> requestedSnapshots = session.getAttribute(SessionAttributes.REQUESTED_SNAPSHOTS);
-
-        //TODO: Support multiple snapshot directories
 
         String snapshotPath = null;
         if (requestedSnapshots.size()>0){

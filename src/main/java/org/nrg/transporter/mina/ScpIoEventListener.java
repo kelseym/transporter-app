@@ -5,10 +5,7 @@ import org.apache.sshd.common.AttributeRepository;
 import org.apache.sshd.common.io.IoAcceptor;
 import org.apache.sshd.common.io.IoConnector;
 import org.apache.sshd.common.io.IoServiceEventListener;
-import org.apache.sshd.server.SshServer;
-import org.nrg.transporter.services.HistoryService;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.nrg.transporter.services.ActivityService;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -16,10 +13,10 @@ import java.net.SocketAddress;
 @Slf4j
 public class ScpIoEventListener implements IoServiceEventListener {
 
-    private final HistoryService historyService;
+    private final ActivityService activityService;
 
-    public ScpIoEventListener(HistoryService historyService) {
-        this.historyService = historyService;
+    public ScpIoEventListener(ActivityService activityService) {
+        this.activityService = activityService;
     }
     @Override
     public void connectionEstablished(IoConnector connector, SocketAddress local, AttributeRepository context, SocketAddress remote) throws IOException {

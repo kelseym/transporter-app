@@ -4,12 +4,10 @@ import org.mockito.Mockito;
 import org.nrg.transporter.mina.SshdPasswordAuthenticator;
 import org.nrg.transporter.services.*;
 import org.nrg.transporter.services.impl.*;
-import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
@@ -68,8 +66,8 @@ public class TransporterTestConfig {
 
     @Profile("mock")
     @Bean
-    public HistoryService mockHistoryService() {
-        return Mockito.mock(HistoryService.class);
+    public ActivityService mockHistoryService() {
+        return Mockito.mock(ActivityService.class);
     }
 
 
@@ -128,7 +126,7 @@ public class TransporterTestConfig {
 
     @Profile("xnat-integration")
     @Bean
-    public HistoryService historyService() {
-        return new DefaultHistoryService(restClientService(), heartbeatService());
+    public ActivityService historyService() {
+        return new DefaultActivityService(restClientService(), heartbeatService());
     }
 }

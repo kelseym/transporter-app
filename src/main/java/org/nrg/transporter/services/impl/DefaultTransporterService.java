@@ -26,7 +26,7 @@ public class DefaultTransporterService implements TransporterService {
     private final AuthenticationService authenticationService;
     private final ScpServerService scpServerService;
     private final PayloadService payloadService;
-    private final HistoryService historyService;
+    private final ActivityService activityService;
     private final TransporterConfig transporterConfig;
 
     private static String SCP_COMMAND_REGEX = "scp.*f\\s+(.+)$";
@@ -36,14 +36,14 @@ public class DefaultTransporterService implements TransporterService {
 
     @Autowired
     public DefaultTransporterService(RestClientService restClientService, AuthenticationService authenticationService,
-                                     PayloadService payloadService, HistoryService historyService,
+                                     PayloadService payloadService, ActivityService activityService,
                                      TransporterConfig transporterConfig) {
         this.restClientService = restClientService;
         this.authenticationService = authenticationService;
         this.payloadService = payloadService;
-        this.historyService = historyService;
+        this.activityService = activityService;
         this.transporterConfig = transporterConfig;
-        this.scpServerService = new DefaultScpServerService(authenticationService, this, historyService);
+        this.scpServerService = new DefaultScpServerService(authenticationService, this, activityService);
     }
 
     // Check connection to XNAT

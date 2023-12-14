@@ -24,10 +24,6 @@ public interface RestClientService {
 
     public Optional<XnatUserSession> authenticate(String username, String password);
 
-    Optional<XnatUserSession> getXnatToken(String username, String password);
-
-    Optional<XnatUserSession> getXnatToken(String username, String password, String alias, int duration);
-
     Boolean postSessionUpdate(XnatUserSession xnatUserSession,
                            String messageId,
                            TransporterActivityItem.TransporterActivityItemCreator historyItem);

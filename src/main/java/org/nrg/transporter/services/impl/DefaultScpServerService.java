@@ -45,9 +45,9 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setPasswordAuthenticator(
                 new SshdPasswordAuthenticator(authenticationService, transporterService, historyService));
         sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
-        ScpCommandFactory scpCommandFactory = new ScpCommandFactory();
-        scpCommandFactory.setDelegateCommandFactory(new CustomScpCommandFactory(transporterService, historyService));
-        sshdServer.setCommandFactory(scpCommandFactory);
+        CustomScpCommandFactory customScpCommandFactory = new CustomScpCommandFactory(transporterService, historyService);
+        customScpCommandFactory.addEventListener(new CustomScpTransferEventListener(historyService));
+        sshdServer.setCommandFactory(customScpCommandFactory);
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
 
         sshdServer.setIoServiceEventListener(new ScpIoEventListener(historyService));

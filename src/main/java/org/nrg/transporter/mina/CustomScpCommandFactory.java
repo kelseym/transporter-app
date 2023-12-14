@@ -54,7 +54,14 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
 
             command = reformatCommand(serverSession, command);
             serverSession.setAttribute(SessionAttributes.COMMAND, command);
-            return new ScpCommandFactory().createCommand(channelSession, command);
+
+            if (this.isSupportedCommand(channelSession, command)){
+                return executeSupportedCommand(channelSession, command);
+            }
+            else{
+                disconnectWithMessage(serverSession, "Unsupported command: " + command);
+                throw new DisconnectException(serverSession, "Unsupported command: " + command);
+            }
         } catch (DisconnectException e) {
             throw new IOException(e);
         }
@@ -103,6 +110,7 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
     }
 
     private void disconnectWithMessage(ServerSession session, String message) throws IOException {
+        log.error(message);
         historyService.queueHistoryItem(session,message);
         session.disconnect(1, message);
     }

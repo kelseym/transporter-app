@@ -242,7 +242,7 @@ public class DefaultRestClientService implements RestClientService {
             activityItem.setUsername(xnatUserSession.getUsername());
             return postSessionUpdate(xnatUserSession.getJsessionid(), messageId, activityItem);
         } else {
-            log.error("No XNAT session found for user {}. Skipping session activity update.", xnatUserSession.getUsername());
+            log.error("No XNAT session found for user {}. Skipping session activity update.", activityItem.getUsername());
             return false;
         }
     }

@@ -43,7 +43,7 @@ public class TransporterTestConfig {
     @Profile("mock")
     @Bean
     public ScpServerService mockScpServerService() {
-        return new DefaultScpServerService(mockAuthenticationService(), transporterService(), mockHistoryService());
+        return new DefaultScpServerService(mockAuthenticationService(), transporterService(), mockHistoryService(),transporterConfig());
     }
 
     @Profile("mock")
@@ -74,7 +74,7 @@ public class TransporterTestConfig {
     @Profile("xnat-integration")
     @Bean
     public ScpServerService scpServerService() {
-        return new DefaultScpServerService(authenticationService(), transporterService(), historyService());
+        return new DefaultScpServerService(authenticationService(), transporterService(), historyService(), transporterConfig());
     }
 
     @Profile("xnat-integration")

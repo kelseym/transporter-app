@@ -4,6 +4,7 @@ package org.nrg.transporter.services.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
+import org.nrg.transporter.config.TransporterConfig;
 import org.nrg.transporter.mina.*;
 import org.nrg.transporter.model.SshdConfig;
 import org.nrg.transporter.services.AuthenticationService;
@@ -12,6 +13,7 @@ import org.nrg.transporter.services.ScpServerService;
 import org.nrg.transporter.services.TransporterService;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,13 +23,16 @@ public class DefaultScpServerService implements ScpServerService {
     private final AuthenticationService authenticationService;
     private final TransporterService transporterService;
     private final ActivityService activityService;
+    private final TransporterConfig transporterConfig;
     private Map<Integer, SshServer> sshdServerMap = new ConcurrentHashMap<>();
 
     public DefaultScpServerService(AuthenticationService authenticationService,
-                                   TransporterService transporterService, ActivityService activityService) {
+                                   TransporterService transporterService, ActivityService activityService,
+                                   TransporterConfig transporterConfig) {
         this.authenticationService = authenticationService;
         this.transporterService = transporterService;
         this.activityService = activityService;
+        this.transporterConfig = transporterConfig;
     }
 
     @Override
@@ -42,29 +47,16 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setPort(sshdConfig.getPort());
         sshdServer.setPasswordAuthenticator(
                 new SshdPasswordAuthenticator(authenticationService, transporterService, activityService));
-        sshdServer.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
+        sshdServer.setKeyPairProvider(
+                new SimpleGeneratorHostKeyProvider(Paths.get(transporterConfig.getScpHostKeyPath())));
         CustomScpCommandFactory customScpCommandFactory = new CustomScpCommandFactory(transporterService, activityService);
         customScpCommandFactory.addEventListener(new CustomScpTransferEventListener(activityService));
         sshdServer.setCommandFactory(customScpCommandFactory);
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
-
         sshdServer.setIoServiceEventListener(new ScpIoEventListener(activityService));
         sshdServer.addSessionListener(new ScpSessionListener(activityService));
-
-        // TODO: Add event listener to SCP server to handle logging
-/*        scpCommandFactory.addEventListener(new ScpTransferEventListener() {
-            @Override
-            public void startFileEvent(Session session, FileOperation op, Path file, long length, Set<PosixFilePermission> perms) throws IOException {
-                if (!file.toString().endsWith("catalog.xml")) {
-                    ScpTransferEventListener.super.startFileEvent(session, op, file, length, perms);
-                } else {
-                    System.out.println("Skipping XNAT catalog file: " + file);
-                }
-            }
-        });
-*/
-        //TODO: Add session log listener
         sshdServer.start();
+
         sshdServerMap.put(sshdConfig.getPort(), sshdServer);
         return sshdServer.getPort();
     }

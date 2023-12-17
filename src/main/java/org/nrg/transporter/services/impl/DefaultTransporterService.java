@@ -43,7 +43,8 @@ public class DefaultTransporterService implements TransporterService {
         this.payloadService = payloadService;
         this.activityService = activityService;
         this.transporterConfig = transporterConfig;
-        this.scpServerService = new DefaultScpServerService(authenticationService, this, activityService);
+        this.scpServerService = new DefaultScpServerService(authenticationService,
+                this, activityService, transporterConfig);
     }
 
     // Check connection to XNAT
@@ -114,7 +115,7 @@ public class DefaultTransporterService implements TransporterService {
     public String stripRequestedSnapshotLabels(final String scpCommand) {
         Matcher matcher = SCP_COMMAND_PATTERN.matcher(scpCommand);
         if (matcher.find()) {
-            return scpCommand.replace(matcher.group(1), "/");
+            return scpCommand.replace(matcher.group(1), "*");
         }
         return scpCommand;
     }

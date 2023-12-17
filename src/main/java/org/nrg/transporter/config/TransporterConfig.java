@@ -19,5 +19,5 @@ public class TransporterConfig {
 
     private String defaultScpPort = "22";
 
-    private String xnatAppPathMapping = "/data/xnat/build/:/data/xnat/build/";
+    private String scpHostKeyPath = "/tmp/hostKeyFile";
 }

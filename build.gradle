@@ -12,7 +12,7 @@ import com.bmuschko.gradle.docker.tasks.image.*
 import com.bmuschko.gradle.docker.tasks.container.*
 
 archivesBaseName = 'xnat-transporter-app'
-version = '0.1.0'
+version = '0.2.0'
 
 group "org.nrg.xnatx.services"
 description "XNAT Transporter Application"
@@ -38,7 +38,7 @@ dependencies {
     implementation "org.apache.sshd:sshd-scp:${vApacheSshd}"
     implementation "org.apache.sshd:sshd-core:${vApacheSshd}"
     implementation 'com.h2database:h2'
-    implementation 'org.nrg.xnatx.plugins:xnat-transporter-plugin:0.1.0'
+    implementation 'org.nrg.xnatx.plugins:xnat-transporter-plugin:0.2.0'
     testImplementation "junit:junit"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation "org.hamcrest:hamcrest-library"

@@ -11,8 +11,8 @@ Transporter functionality is implemented across two components: the [XNAT Plugin
 
 Snapshot creation is currently supported via [python script](https://github.com/kelseym/transporter-plugin/tree/main/snapshot-container) and the Docker container (`xnat/data-snapshot:0.1`).
 
-## Alpha Version Application
-* This appliaction is in Alpha release and is subject to breaking changes without notice.
+## Beta Version Application
+* This appliaction is in Beta release and is subject to breaking changes without notice.
 * Building this application relies on Maven Central as well as a Maven repository hosted by the XNAT team
 
 ## Building the Application
@@ -23,7 +23,7 @@ The Transporter Application is implemented as a Java Spring Boot application. Th
 
 ## Configuration
 
-The applications.properties file contains several configuration parameters that you may need to customize.
+:The applications.properties file contains several configuration parameters that you may need to customize.
 ```
 server.port=8081
 transporter.xnat_host=http://localhost

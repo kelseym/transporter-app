@@ -80,7 +80,7 @@ public class XnatIntegrationTest {
 
         final File downloadDir = temporaryFolder.newFolder("download");
 
-        Long serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
+        Integer serverId = scpServerService.addScpServer(getPopulateSshdConfig(TEST_PORT));
         assertThat(serverId, is(not(nullValue())));
 
         SshClient client = SshClient.setUpDefaultClient();
@@ -142,11 +142,6 @@ public class XnatIntegrationTest {
 
         // Use the payload label to get the payload directory
         transporterService.startScpServer(TEST_PORT);
-
-
-
-
-
     }
 
 }

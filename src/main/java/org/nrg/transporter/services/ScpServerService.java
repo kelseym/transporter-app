@@ -5,6 +5,8 @@ import org.nrg.transporter.model.SshdConfig;
 import java.io.IOException;
 
 public interface ScpServerService {
-    Long addScpServer(SshdConfig sshdConfig)
+    Integer addScpServer(SshdConfig sshdConfig)
         throws IOException;
+
+    void removeScpServer(Integer port) throws IOException;
 }

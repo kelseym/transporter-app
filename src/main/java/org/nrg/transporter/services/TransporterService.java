@@ -14,10 +14,10 @@ public interface TransporterService {
     Boolean xnatHostStatus();
 
     //Start default SCP server
-    Long startScpServer() throws IOException;
+    Integer startScpServer() throws IOException;
 
     // Start default SCP server
-    Long startScpServer(Integer port) throws IOException;
+    Integer startScpServer(Integer port) throws IOException;
 
     List<ServerStatus> scpServerStatus();
 
@@ -34,4 +34,5 @@ public interface TransporterService {
     List<String> parseRequestedSnapshotLabels(final String scpCommand);
 
     String stripRequestedSnapshotLabels(final String scpCommand);
+
 }

@@ -88,7 +88,7 @@ public class DefaultRestClientService implements RestClientService {
 
     private void postHeartbeat(String jsessionid, RemoteAppHeartbeat heartbeat) {
         log.debug("Posting heartbeat to XNAT at " + xnatUrl);
-        String heartbeatUrl = xnatUrl + HEARTBEAT_URL + "/" + heartbeat.getRemoteAppId();
+        String heartbeatUrl = xnatUrl + HEARTBEAT_URL;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

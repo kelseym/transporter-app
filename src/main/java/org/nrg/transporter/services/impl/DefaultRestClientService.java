@@ -8,7 +8,7 @@ import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.DataSnap;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
-import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
+import org.nrg.xnatx.plugins.transporter.model.TransportActivity.TransportActivityMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -201,7 +201,7 @@ public class DefaultRestClientService implements RestClientService {
     @Override
     public Boolean postSessionUpdate(XnatUserSession xnatUserSession,
                                      String messageId,
-                                     TransporterActivityItem.TransporterActivityItemCreator activityItem){
+                                     TransportActivityMessage activityItem){
         if (xnatUserSession != null) {
             activityItem.setUsername(xnatUserSession.getUsername());
             return postSessionUpdate(xnatUserSession.getJsessionid(), messageId, activityItem);
@@ -213,14 +213,14 @@ public class DefaultRestClientService implements RestClientService {
 
     private Boolean postSessionUpdate(String jsessionid,
                                   String messageId,
-                                  TransporterActivityItem.TransporterActivityItemCreator activityItem) {
+                                  TransportActivityMessage activityItem) {
         log.info("Posting session update to XNAT at " + xnatUrl);
         String activityUrl = xnatUrl + REMOTE_ACTIVITY_URL + "/?message_id=" + messageId;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Cookie", "JSESSIONID=" + jsessionid);
-        HttpEntity<TransporterActivityItem.TransporterActivityItemCreator> requestEntity =
+        HttpEntity<TransportActivityMessage> requestEntity =
                 new HttpEntity<>(activityItem, headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity =

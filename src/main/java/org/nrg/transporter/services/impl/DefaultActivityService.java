@@ -9,7 +9,7 @@ import org.nrg.transporter.services.ActivityService;
 import org.nrg.transporter.services.RestClientService;
 import org.nrg.xnatx.plugins.transporter.model.Payload;
 import org.nrg.xnatx.plugins.transporter.model.RemoteAppHeartbeat;
-import org.nrg.xnatx.plugins.transporter.model.TransporterActivityItem;
+import org.nrg.xnatx.plugins.transporter.model.TransportActivity.TransportActivityMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -47,17 +47,16 @@ public class DefaultActivityService implements ActivityService {
             return;
         }
 
-        TransporterActivityItem.TransporterActivityItemCreator activityItemCreator =
-                TransporterActivityItem.TransporterActivityItemCreator.builder()
-                .username(session.getUsername())
-                .event(message)
-                .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
-                        session.getAttribute(REQUESTED_SNAPSHOTS)
+        TransportActivityMessage activityItemCreator =
+                TransportActivityMessage.builder()
+                        .username(session.getUsername())
+                        .eventMessage(message)
+                        .snapshotId(session.getAttribute(REQUESTED_SNAPSHOTS) != null ?
+                            session.getAttribute(REQUESTED_SNAPSHOTS)
                                 .stream()
                                 .map(Payload::getLabel).collect(Collectors.toList())
                                 .toString() : "")
                 .sessionId(transportSessionId)
-                .remoteAppHeartbeat(getHeartbeat())
                 .timestamp(LocalDateTime.now())
                 .build();
         historyQueue.addHistoryItem(xnatUserSession, activityItemCreator);
@@ -88,12 +87,12 @@ public class DefaultActivityService implements ActivityService {
     @Data
     private class HistoryQueueItem {
         private XnatUserSession xnatUserSession;
-        private TransporterActivityItem.TransporterActivityItemCreator historyItem;
+        private TransportActivityMessage historyItem;
         private LocalDateTime timestamp;
         private String messageId;
 
         public HistoryQueueItem(XnatUserSession xnatUserSession,
-                                TransporterActivityItem.TransporterActivityItemCreator historyItem) {
+                                TransportActivityMessage historyItem) {
             this.xnatUserSession = xnatUserSession;
             this.historyItem = historyItem;
             this.timestamp = LocalDateTime.now();
@@ -114,7 +113,7 @@ public class DefaultActivityService implements ActivityService {
         private ArrayList<HistoryQueueItem> historyQueue = new ArrayList<>();
 
         public synchronized void addHistoryItem(XnatUserSession xnatUserSession,
-                                                TransporterActivityItem.TransporterActivityItemCreator activityItem) {
+                                                TransportActivityMessage activityItem) {
             historyQueue.add(new HistoryQueueItem(xnatUserSession, activityItem));
         }
 
@@ -124,8 +123,18 @@ public class DefaultActivityService implements ActivityService {
                 LocalDateTime now = LocalDateTime.now();
                 Iterator<HistoryQueueItem> iterator = historyQueue.iterator();
 
+                Boolean heartbeatSent = false;
+
                 while (iterator.hasNext()) {
                     HistoryQueueItem historyQueueItem = iterator.next();
+
+                    // Send heartbeat to XNAT once per queue flush, using first users session
+                    if (!heartbeatSent) {
+                        restClientService.postHeartbeat(
+                                historyQueueItem.getXnatUserSession(), heartbeatService.getHeartbeat()
+                        );
+                        heartbeatSent = true;
+                    }
 
                     Boolean success = restClientService.postSessionUpdate(
                             historyQueueItem.getXnatUserSession(),

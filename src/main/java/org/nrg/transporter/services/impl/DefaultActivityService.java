@@ -47,7 +47,7 @@ public class DefaultActivityService implements ActivityService {
             return;
         }
 
-        TransportActivityMessage activityItemCreator =
+        TransportActivityMessage activityItemMessage =
                 TransportActivityMessage.builder()
                         .username(session.getUsername())
                         .eventMessage(message)
@@ -59,7 +59,7 @@ public class DefaultActivityService implements ActivityService {
                 .sessionId(transportSessionId)
                 .timestamp(LocalDateTime.now())
                 .build();
-        historyQueue.addHistoryItem(xnatUserSession, activityItemCreator);
+        historyQueue.addHistoryItem(xnatUserSession, activityItemMessage);
     }
 
     @Override

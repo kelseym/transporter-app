@@ -43,7 +43,7 @@ public class TransporterTestConfig {
     @Profile("mock")
     @Bean
     public ScpServerService mockScpServerService() {
-        return new DefaultScpServerService(mockAuthenticationService(), transporterService(), mockHistoryService(),transporterConfig());
+        return new DefaultScpServerService(mockAuthenticationService(), mockTransporterService(), mockHistoryService(),transporterConfig());
     }
 
     @Profile("mock")

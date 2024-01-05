@@ -6,6 +6,7 @@ import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.SshException;
 import org.apache.sshd.scp.client.ScpClient;
 import org.apache.sshd.scp.client.ScpClientCreator;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,7 +14,6 @@ import org.junit.rules.TemporaryFolder;
 import org.nrg.transporter.config.TransporterTestConfig;
 import org.nrg.transporter.matchers.HasOneFileMatcher;
 import org.nrg.transporter.model.SshdConfig;
-import org.nrg.transporter.model.UserConfig;
 import org.nrg.transporter.model.XnatUserSession;
 import org.nrg.transporter.services.AuthenticationService;
 import org.nrg.transporter.services.ScpServerService;
@@ -55,14 +55,13 @@ public class DefaultScpServerServiceTest {
     @Autowired private ScpServerService scpServerService;
     @Autowired private AuthenticationService authenticationService;
 
-    final String TEST_HOST = "localhost";
-    final Integer TEST_PORT = 2222;
-    final String TEST_USER = "testUser";
-    final String TEST_PASS = "testPass";
-    final String TEST_SNAPSHOT = "SamplePayload";
+    private final String TEST_HOST = "localhost";
+    private final Integer TEST_PORT = 2222;
+    private final String TEST_USER = "testUser";
+    private final String TEST_PASS = "testPass";
+    private final String TEST_SNAPSHOT = "SamplePayload";
 
-    final String XNAT_HOST = "localhost";
-    final Integer XNAT_PORT = 8080;
+    private SshClient client;
 
     @Before
     public void setUp() throws Exception {
@@ -72,6 +71,13 @@ public class DefaultScpServerServiceTest {
                 .thenReturn(Optional.ofNullable(XnatUserSession.builder().build()));
         Path testRootPath = Paths.get(getClass().getClassLoader()
                 .getResource("TestRootPath").getPath());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if (client != null) {
+            client.stop();
+        }
     }
 
     // Get populated sshdConfig object
@@ -153,7 +159,6 @@ public class DefaultScpServerServiceTest {
             ScpClientCreator creator = ScpClientCreator.instance();
             ScpClient scpClient = creator.createScpClient(session);
             scpClient.download(TEST_SNAPSHOT, downloadDir.getAbsolutePath());
-            //assertThat(Paths.get(downloadDir.getAbsolutePath()), HasOneFileMatcher.hasOneFile());
         } finally {
             client.stop();
         }

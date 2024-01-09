@@ -1,5 +1,6 @@
 package org.nrg.transporter.mina;
 
+import org.apache.sshd.scp.common.ScpFileOpener;
 import org.apache.sshd.server.command.Command;
 import org.apache.sshd.scp.server.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
@@ -57,6 +58,10 @@ public class CustomScpCommandFactory extends ScpCommandFactory{
         }
     }
 
+    @Override
+    public ScpFileOpener getScpFileOpener() {
+        return new CustomScpFileOpener(transporterService);
+    }
 
     private List<String> validatePayloadRequests(String command, ServerSession session, XnatUserSession xnatUserSession)
             throws IOException, DisconnectException {

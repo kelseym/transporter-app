@@ -50,7 +50,6 @@ public class DefaultScpServerService implements ScpServerService {
         sshdServer.setKeyPairProvider(
                 new SimpleGeneratorHostKeyProvider(Paths.get(transporterConfig.getScpHostKeyPath())));
         CustomScpCommandFactory customScpCommandFactory = new CustomScpCommandFactory(transporterService, activityService);
-        customScpCommandFactory.addEventListener(new CustomScpTransferEventListener(activityService));
         sshdServer.setCommandFactory(customScpCommandFactory);
         sshdServer.setFileSystemFactory(new SnapshotVirtualFileSystemFactory());
         sshdServer.setIoServiceEventListener(new ScpIoEventListener(activityService));

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -120,4 +121,16 @@ public class DefaultTransporterService implements TransporterService {
         return scpCommand;
     }
 
+    @Override
+    public List<String> getExcludeList() {
+        try {
+            String excludeList = transporterConfig.getExcludeList();
+            if (excludeList!= null && !excludeList.isEmpty()) {
+                return Arrays.asList(excludeList.split(","));
+            }
+        } catch (Exception e) {
+            log.error("Error getting exclude list from config. Using default exclude list.", e);
+        }
+        return Collections.emptyList();
+    }
 }

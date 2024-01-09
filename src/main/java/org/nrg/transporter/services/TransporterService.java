@@ -35,4 +35,5 @@ public interface TransporterService {
 
     String stripRequestedSnapshotLabels(final String scpCommand);
 
+    List<String> getExcludeList();
 }

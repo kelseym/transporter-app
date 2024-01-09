@@ -9,7 +9,6 @@ plugins {
 }
 
 import com.bmuschko.gradle.docker.tasks.image.*
-import com.bmuschko.gradle.docker.tasks.container.*
 
 archivesBaseName = 'xnat-transporter-app'
 version = '0.4.0'

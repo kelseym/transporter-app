@@ -224,7 +224,7 @@ public class DefaultRestClientService implements RestClientService {
                 new HttpEntity<>(activityItem, headers);
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> responseEntity =
-                restTemplate.postForEntity(activityUrl, requestEntity, String.class);
+                restTemplate.exchange(activityUrl, HttpMethod.PUT, requestEntity, String.class);
         if (responseEntity != null && responseEntity.getStatusCode().is2xxSuccessful()) {
             log.info("Status update sent successfully");
             return true;

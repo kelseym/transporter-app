@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Data
 @Component
 @ConfigurationProperties(prefix = "transporter")
@@ -20,4 +22,6 @@ public class TransporterConfig {
     private String defaultScpPort = "22";
 
     private String scpHostKeyPath = "/tmp/hostKeyFile";
+
+    private String excludeList = ".*catalog.xml,.DS_Store";
 }

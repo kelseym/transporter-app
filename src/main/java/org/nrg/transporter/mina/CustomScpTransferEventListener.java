@@ -21,12 +21,6 @@ public class CustomScpTransferEventListener implements ScpTransferEventListener 
     }
 
     @Override
-    public void startFileEvent(Session session, FileOperation op, Path file, long length, Set<PosixFilePermission> perms) {
-        //log.debug("Started download: " + file.toString());
-        //activityService.queueHistoryItem(session, "Started download: " + file.getFileName());
-    }
-
-    @Override
     public void endFileEvent(Session session, FileOperation op, Path file, long length, Set<PosixFilePermission> perms, Throwable thrown) {
         if (thrown == null) {
             activityService.queueHistoryItem(session, "Downloaded: " + file.getFileName());
